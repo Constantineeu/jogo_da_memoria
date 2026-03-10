@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>JOGO DA MEMÓRIA - Copa do Mundo</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+text-align:center;
+background:#0a3d62;
+color:white;
+}
+
+h1{
+margin-top:40px;
+}
+
+button{
+padding:12px 25px;
+font-size:18px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+margin:10px;
+}
+
+#playBtn{
+background:#1e90ff;
+color:white;
+}
+
+#rank{
+margin-top:20px;
+width:450px;
+margin-left:auto;
+margin-right:auto;
+background:#00000060;
+padding:15px;
+border-radius:10px;
+max-height:300px;
+overflow:auto;
+}
+
+#game{
+display:none;
+}
+
+#board{
+margin-top:20px;
+display:grid;
+grid-template-columns:repeat(11,80px);
+gap:8px;
+justify-content:center;
+}
+
+.card{
+width:80px;
+height:100px;
+background:#1e90ff;
+border-radius:8px;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.card img{
+width:100%;
+height:100%;
+border-radius:8px;
+display:none;
+}
+
+.card.open img{
+display:block;
+}
+
+#timer{
+font-size:25px;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="menu">
+
+<h1>JOGO DA MEMÓRIA</h1>
+<h3>Especial Copa do Mundo</h3>
+
+<button id="playBtn">👤 Jogar</button>
+
+<div id="rank">
+<h2>Ranking</h2>
+<ul id="rankList"></ul>
+</div>
+
+</div>
+
+<div id="game">
+
+<h2 id="playerName"></h2>
+
+<select id="difficulty">
+<option value="120">Fácil (2min)</option>
+<option value="90">Médio (1:30)</option>
+<option value="60">Normal (1min)</option>
+<option value="40">Difícil (40s)</option>
+<option value="20">Extremo (20s)</option>
+</select>
+
+<div id="timer"></div>
+
+<div id="board"></div>
+
+</div>
+
+<audio id="music" src="musica.mp3" loop></audio>
+
+<script>
+
+const players=[
+"neymar",
+"messi",
+"mbappe",
+"ronaldo",
+"vini",
+"haaland",
+"modric",
+"kane",
+"salah",
+"debruyne",
+"lewandowski"
+];
+
+let deck=[];
+let first=null;
+let second=null;
+let lock=false;
+
+let tempoRestante;
+let timerInterval;
+let startTime;
+
+const board=document.getElementById("board");
+const music=document.getElementById("music");
+
+document.getElementById("playBtn").onclick=()=>{
+
+let nome=prompt("Digite seu nome");
+
+if(!nome)return;
+
+document.getElementById("playerName").innerText="Jogador: "+nome;
+
+startGame(nome);
+
+};
+
+function startGame(nome){
+
+document.getElementById("menu").style.display="none";
+document.getElementById("game").style.display="block";
+
+music.play();
+
+board.innerHTML="";
+
+deck=[...players,...players];
+
+deck.sort(()=>Math.random()-0.5);
+
+deck.forEach(player=>{
+
+let div=document.createElement("div");
+div.className="card";
+div.dataset.value=player;
+
+let img=document.createElement("img");
+img.src="img/"+player+".jpg";
+
+div.appendChild(img);
+
+div.onclick=()=>flip(div);
+
+board.appendChild(div);
+
+});
+
+tempoRestante=parseInt(document.getElementById("difficulty").value);
+
+startTime=Date.now();
+
+timerInterval=setInterval(()=>{
+
+tempoRestante--;
+
+document.getElementById("timer").innerText="Tempo: "+tempoRestante+"s";
+
+if(tempoRestante<=0){
+
+music.pause();
+clearInterval(timerInterval);
+
+alert("Game Over");
+
+location.reload();
+
+}
+
+},1000);
+
+}
+
+function flip(card){
+
+if(lock)return;
+if(card.classList.contains("open"))return;
+
+card.classList.add("open");
+
+if(!first){
+
+first=card;
+return;
+
+}
+
+second=card;
+lock=true;
+
+if(first.dataset.value==second.dataset.value){
+
+first=null;
+second=null;
+lock=false;
+
+checkWin();
+
+}else{
+
+setTimeout(()=>{
+
+first.classList.remove("open");
+second.classList.remove("open");
+
+first=null;
+second=null;
+
+lock=false;
+
+},800);
+
+}
+
+}
+
+function checkWin(){
+
+let abertas=document.querySelectorAll(".open");
+
+if(abertas.length==deck.length){
+
+clearInterval(timerInterval);
+
+music.pause();
+
+let tempoFinal=(Date.now()-startTime)/1000;
+
+let nome=document.getElementById("playerName").innerText.replace("Jogador: ","");
+
+saveRank(nome,tempoFinal);
+
+alert("Você venceu em "+tempoFinal.toFixed(1)+" segundos!");
+
+location.reload();
+
+}
+
+}
+
+function saveRank(nome,tempo){
+
+let rank=JSON.parse(localStorage.getItem("rank"))||[];
+
+let existente=rank.find(r=>r.nome==nome);
+
+let data=new Date().toLocaleDateString();
+
+if(existente){
+
+if(tempo<existente.tempo){
+
+existente.tempo=tempo;
+existente.data=data;
+}
+
+}else{
+
+rank.push({nome:nome,tempo:tempo,data:data});
+
+}
+
+rank.sort((a,b)=>a.tempo-b.tempo);
+
+rank=rank.slice(0,50);
+
+localStorage.setItem("rank",JSON.stringify(rank));
+
+}
+
+function carregarRank(){
+
+let rank=JSON.parse(localStorage.getItem("rank"))||[];
+
+let ul=document.getElementById("rankList");
+
+ul.innerHTML="";
+
+rank.forEach((r,i)=>{
+
+let li=document.createElement("li");
+
+li.innerText=(i+1)+"º - "+r.nome+" - "+r.tempo.toFixed(1)+"s - "+r.data;
+
+ul.appendChild(li);
+
+});
+
+}
+
+carregarRank();
+
+</script>
+
+</body>
+</html>
