@@ -2,20 +2,28 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>JOGO DA MEMÓRIA - Copa do Mundo</title>
+<title>Jogo da Memória - Copa do Mundo</title>
 
 <style>
 
 body{
-font-family:Arial;
 margin:0;
-text-align:center;
-background:#0a3d62;
+font-family:Arial;
+background:#0b3c5d;
 color:white;
+text-align:center;
 }
 
-h1{
-margin-top:40px;
+#menu,#difficulty,#game{
+display:none;
+}
+
+.active{
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+height:100vh;
 }
 
 button{
@@ -32,46 +40,30 @@ background:#1e90ff;
 color:white;
 }
 
-#rank{
-margin-top:20px;
-width:450px;
-margin-left:auto;
-margin-right:auto;
-background:#00000060;
-padding:15px;
-border-radius:10px;
-max-height:300px;
-overflow:auto;
-}
-
-#game{
-display:none;
-}
-
 #board{
-margin-top:20px;
 display:grid;
-grid-template-columns:repeat(11,80px);
+grid-template-columns:repeat(11,70px);
 gap:8px;
 justify-content:center;
+margin-top:20px;
 }
 
 .card{
-width:80px;
-height:100px;
+width:70px;
+height:90px;
 background:#1e90ff;
 border-radius:8px;
-cursor:pointer;
 display:flex;
 align-items:center;
 justify-content:center;
+cursor:pointer;
 }
 
 .card img{
 width:100%;
 height:100%;
-border-radius:8px;
 display:none;
+border-radius:8px;
 }
 
 .card.open img{
@@ -79,8 +71,17 @@ display:block;
 }
 
 #timer{
-font-size:25px;
+font-size:26px;
 margin-top:10px;
+}
+
+#countdown{
+position:absolute;
+font-size:90px;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+display:none;
 }
 
 </style>
@@ -88,31 +89,33 @@ margin-top:10px;
 
 <body>
 
-<div id="menu">
+<!-- MENU -->
+<div id="menu" class="active">
 
 <h1>JOGO DA MEMÓRIA</h1>
 <h3>Especial Copa do Mundo</h3>
 
 <button id="playBtn">👤 Jogar</button>
 
-<div id="rank">
-<h2>Ranking</h2>
-<ul id="rankList"></ul>
 </div>
+
+<!-- ESCOLHA DIFICULDADE -->
+<div id="difficulty">
+
+<h2>Escolha a dificuldade</h2>
+
+<button onclick="startCountdown(120)">Fácil (2 min)</button>
+<button onclick="startCountdown(90)">Médio (1:30)</button>
+<button onclick="startCountdown(60)">Normal (1 min)</button>
+<button onclick="startCountdown(40)">Difícil (40s)</button>
+<button onclick="startCountdown(20)">Extremo (20s)</button>
 
 </div>
 
+<!-- JOGO -->
 <div id="game">
 
 <h2 id="playerName"></h2>
-
-<select id="difficulty">
-<option value="120">Fácil (2min)</option>
-<option value="90">Médio (1:30)</option>
-<option value="60">Normal (1min)</option>
-<option value="40">Difícil (40s)</option>
-<option value="20">Extremo (20s)</option>
-</select>
 
 <div id="timer"></div>
 
@@ -120,22 +123,24 @@ margin-top:10px;
 
 </div>
 
-<audio id="music" src="musica.mp3" loop></audio>
+<div id="countdown"></div>
 
 <script>
 
+let playerName="";
+
 const players=[
-"neymar",
 "messi",
 "mbappe",
-"ronaldo",
-"vini",
-"haaland",
+"neymar",
 "modric",
+"griezmann",
+"alvarez",
+"vinijr",
 "kane",
-"salah",
 "debruyne",
-"lewandowski"
+"hakimi",
+"giroud"
 ];
 
 let deck=[];
@@ -145,56 +150,93 @@ let lock=false;
 
 let tempoRestante;
 let timerInterval;
-let startTime;
-
-const board=document.getElementById("board");
-const music=document.getElementById("music");
 
 document.getElementById("playBtn").onclick=()=>{
 
-let nome=prompt("Digite seu nome");
+playerName=prompt("Digite seu nome");
 
-if(!nome)return;
+if(!playerName)return;
 
-document.getElementById("playerName").innerText="Jogador: "+nome;
+document.getElementById("playerName").innerText="Jogador: "+playerName;
 
-startGame(nome);
+showScreen("difficulty");
 
 };
 
-function startGame(nome){
+function showScreen(id){
 
-document.getElementById("menu").style.display="none";
-document.getElementById("game").style.display="block";
+document.querySelectorAll("#menu,#difficulty,#game")
+.forEach(e=>e.classList.remove("active"));
 
-music.play();
+document.getElementById(id).classList.add("active");
 
-board.innerHTML="";
+}
+
+function startCountdown(tempo){
+
+showScreen("game");
+
+let count=3;
+
+let el=document.getElementById("countdown");
+
+el.style.display="block";
+
+el.innerText=count;
+
+let interval=setInterval(()=>{
+
+count--;
+
+if(count==0){
+
+clearInterval(interval);
+
+el.style.display="none";
+
+startGame(tempo);
+
+}else{
+
+el.innerText=count;
+
+}
+
+},1000);
+
+}
+
+function startGame(tempo){
+
+tempoRestante=tempo;
 
 deck=[...players,...players];
 
 deck.sort(()=>Math.random()-0.5);
 
+const board=document.getElementById("board");
+
+board.innerHTML="";
+
 deck.forEach(player=>{
 
-let div=document.createElement("div");
-div.className="card";
-div.dataset.value=player;
+let card=document.createElement("div");
+
+card.className="card";
+
+card.dataset.value=player;
 
 let img=document.createElement("img");
+
 img.src="img/"+player+".jpg";
 
-div.appendChild(img);
+card.appendChild(img);
 
-div.onclick=()=>flip(div);
+card.onclick=()=>flip(card);
 
-board.appendChild(div);
+board.appendChild(card);
 
 });
-
-tempoRestante=parseInt(document.getElementById("difficulty").value);
-
-startTime=Date.now();
 
 timerInterval=setInterval(()=>{
 
@@ -204,7 +246,6 @@ document.getElementById("timer").innerText="Tempo: "+tempoRestante+"s";
 
 if(tempoRestante<=0){
 
-music.pause();
 clearInterval(timerInterval);
 
 alert("Game Over");
@@ -220,6 +261,7 @@ location.reload();
 function flip(card){
 
 if(lock)return;
+
 if(card.classList.contains("open"))return;
 
 card.classList.add("open");
@@ -227,17 +269,21 @@ card.classList.add("open");
 if(!first){
 
 first=card;
+
 return;
 
 }
 
 second=card;
+
 lock=true;
 
 if(first.dataset.value==second.dataset.value){
 
 first=null;
+
 second=null;
+
 lock=false;
 
 checkWin();
@@ -247,9 +293,11 @@ checkWin();
 setTimeout(()=>{
 
 first.classList.remove("open");
+
 second.classList.remove("open");
 
 first=null;
+
 second=null;
 
 lock=false;
@@ -264,77 +312,17 @@ function checkWin(){
 
 let abertas=document.querySelectorAll(".open");
 
-if(abertas.length==deck.length){
+if(abertas.length===deck.length){
 
 clearInterval(timerInterval);
 
-music.pause();
-
-let tempoFinal=(Date.now()-startTime)/1000;
-
-let nome=document.getElementById("playerName").innerText.replace("Jogador: ","");
-
-saveRank(nome,tempoFinal);
-
-alert("Você venceu em "+tempoFinal.toFixed(1)+" segundos!");
+alert("Você venceu!");
 
 location.reload();
 
 }
 
 }
-
-function saveRank(nome,tempo){
-
-let rank=JSON.parse(localStorage.getItem("rank"))||[];
-
-let existente=rank.find(r=>r.nome==nome);
-
-let data=new Date().toLocaleDateString();
-
-if(existente){
-
-if(tempo<existente.tempo){
-
-existente.tempo=tempo;
-existente.data=data;
-}
-
-}else{
-
-rank.push({nome:nome,tempo:tempo,data:data});
-
-}
-
-rank.sort((a,b)=>a.tempo-b.tempo);
-
-rank=rank.slice(0,50);
-
-localStorage.setItem("rank",JSON.stringify(rank));
-
-}
-
-function carregarRank(){
-
-let rank=JSON.parse(localStorage.getItem("rank"))||[];
-
-let ul=document.getElementById("rankList");
-
-ul.innerHTML="";
-
-rank.forEach((r,i)=>{
-
-let li=document.createElement("li");
-
-li.innerText=(i+1)+"º - "+r.nome+" - "+r.tempo.toFixed(1)+"s - "+r.data;
-
-ul.appendChild(li);
-
-});
-
-}
-
-carregarRank();
 
 </script>
 
