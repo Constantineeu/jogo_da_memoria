@@ -9,30 +9,30 @@
 body{
 margin:0;
 font-family:Arial;
-background:#0b3c5d;
+background:#0b5fa5;
 color:white;
 text-align:center;
 }
 
-#menu,#difficulty,#game{
+.screen{
 display:none;
+height:100vh;
+justify-content:center;
+align-items:center;
+flex-direction:column;
 }
 
 .active{
 display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-height:100vh;
 }
 
 button{
 padding:12px 25px;
 font-size:18px;
 border:none;
-border-radius:10px;
+border-radius:8px;
 cursor:pointer;
-margin:10px;
+margin:8px;
 background:#1e90ff;
 color:white;
 }
@@ -40,7 +40,7 @@ color:white;
 #board{
 display:grid;
 grid-template-columns:repeat(11,80px);
-gap:8px;
+gap:6px;
 justify-content:center;
 margin-top:20px;
 }
@@ -52,8 +52,8 @@ background:#1e90ff;
 border-radius:8px;
 cursor:pointer;
 display:flex;
-align-items:center;
 justify-content:center;
+align-items:center;
 }
 
 .card img{
@@ -68,17 +68,25 @@ display:block;
 }
 
 #timer{
-font-size:26px;
-margin-top:10px;
+font-size:24px;
+margin:10px;
 }
 
 #countdown{
 position:absolute;
 font-size:80px;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
 display:none;
+}
+
+table{
+background:white;
+color:black;
+border-collapse:collapse;
+}
+
+td,th{
+padding:6px 10px;
+border:1px solid black;
 }
 
 </style>
@@ -86,33 +94,51 @@ display:none;
 
 <body>
 
+<audio id="music" loop>
+<source src="music/stadium.mp3" type="audio/mpeg">
+</audio>
+
 <!-- MENU -->
-<div id="menu" class="active">
+
+<div id="menu" class="screen active">
 
 <h1>JOGO DA MEMÓRIA</h1>
 <h3>Especial Copa do Mundo</h3>
 
-<button id="playBtn">👤 Jogar</button>
+<button onclick="start()">👤 Jogar</button>
+
+<h2>Ranking</h2>
+
+<table id="rankTable">
+<tr>
+<th>#</th>
+<th>Nome</th>
+<th>Tempo</th>
+<th>Data</th>
+</tr>
+</table>
 
 </div>
 
 <!-- DIFICULDADE -->
-<div id="difficulty">
+
+<div id="difficulty" class="screen">
 
 <h2>Escolha a dificuldade</h2>
 
-<button onclick="startCountdown(120)">Fácil (2 min)</button>
-<button onclick="startCountdown(90)">Médio (1:30)</button>
-<button onclick="startCountdown(60)">Normal (1 min)</button>
-<button onclick="startCountdown(40)">Difícil (40s)</button>
-<button onclick="startCountdown(20)">Extremo (20s)</button>
+<button onclick="countdown(120)">Fácil (2 min)</button>
+<button onclick="countdown(90)">Médio (1:30)</button>
+<button onclick="countdown(60)">Normal (1 min)</button>
+<button onclick="countdown(40)">Difícil (40s)</button>
+<button onclick="countdown(20)">Extremo (20s)</button>
 
 </div>
 
 <!-- JOGO -->
-<div id="game">
 
-<h2 id="playerName"></h2>
+<div id="game" class="screen">
+
+<h2 id="player"></h2>
 
 <div id="timer"></div>
 
@@ -124,76 +150,69 @@ display:none;
 
 <script>
 
-let playerName="";
+let nome="";
+let tempoInicial;
+let tempo;
+let intervalo;
 
-const players=[
-"messi",
-"mbappe",
-"neymar",
-"modric",
-"griezmann",
-"alvarez",
-"vinijr",
-"kane",
-"debruyne",
-"hakimi",
-"giroud"
+const jogadores=[
+"messi","mbappe","neymar","modric","griezmann",
+"alvarez","vinijr","kane","debruyne","hakimi","giroud"
 ];
 
-let deck=[];
-let first=null;
-let second=null;
-let lock=false;
+let cartas=[];
+let primeira=null;
+let segunda=null;
+let trava=false;
 
-let tempoRestante;
-let timerInterval;
-
-document.getElementById("playBtn").onclick=()=>{
-
-playerName=prompt("Digite seu nome");
-
-if(!playerName)return;
-
-document.getElementById("playerName").innerText="Jogador: "+playerName;
-
-showScreen("difficulty");
-
-};
-
-function showScreen(id){
-
-document.querySelectorAll("#menu,#difficulty,#game")
-.forEach(e=>e.classList.remove("active"));
-
+function trocarTela(id){
+document.querySelectorAll(".screen")
+.forEach(t=>t.classList.remove("active"));
 document.getElementById(id).classList.add("active");
+}
+
+function start(){
+
+nome=prompt("Digite seu nome");
+
+if(!nome)return;
+
+document.getElementById("player").innerText="Jogador: "+nome;
+
+trocarTela("difficulty");
 
 }
 
-function startCountdown(tempo){
+function countdown(t){
 
-showScreen("game");
+tempoInicial=t;
+tempo=t;
 
-let count=3;
+trocarTela("game");
+
+let c=3;
 
 let el=document.getElementById("countdown");
 
 el.style.display="block";
-el.innerText=count;
+el.innerText=c;
 
-let interval=setInterval(()=>{
+let cont=setInterval(()=>{
 
-count--;
+c--;
 
-if(count===0){
+if(c==0){
 
-clearInterval(interval);
+clearInterval(cont);
 el.style.display="none";
 
-startGame(tempo);
+document.getElementById("music").play();
+
+iniciarJogo();
 
 }else{
 
-el.innerText=count;
+el.innerText=c;
 
 }
 
@@ -201,47 +220,43 @@ el.innerText=count;
 
 }
 
-function startGame(tempo){
+function iniciarJogo(){
 
-tempoRestante=tempo;
+cartas=[...jogadores,...jogadores];
 
-deck=[...players,...players];
+cartas.sort(()=>Math.random()-0.5);
 
-deck.sort(()=>Math.random()-0.5);
+const tab=document.getElementById("board");
 
-const board=document.getElementById("board");
+tab.innerHTML="";
 
-board.innerHTML="";
-
-deck.forEach(player=>{
+cartas.forEach(j=>{
 
 let card=document.createElement("div");
-
 card.className="card";
-
-card.dataset.value=player;
+card.dataset.valor=j;
 
 let img=document.createElement("img");
-
-img.src="img/"+player+".jpg";
+img.src="img/"+j+".jpg";
 
 card.appendChild(img);
 
-card.onclick=()=>flip(card);
+card.onclick=()=>virar(card);
 
-board.appendChild(card);
+tab.appendChild(card);
 
 });
 
-timerInterval=setInterval(()=>{
+intervalo=setInterval(()=>{
 
-tempoRestante--;
+tempo--;
 
-document.getElementById("timer").innerText="Tempo: "+tempoRestante+"s";
+document.getElementById("timer").innerText="Tempo: "+tempo+"s";
 
-if(tempoRestante<=0){
+if(tempo<=0){
 
-clearInterval(timerInterval);
+clearInterval(intervalo);
+document.getElementById("music").pause();
 
 alert("Game Over");
 
@@ -253,41 +268,39 @@ location.reload();
 
 }
 
-function flip(card){
+function virar(card){
 
-if(lock)return;
+if(trava)return;
 if(card.classList.contains("open"))return;
 
 card.classList.add("open");
 
-if(!first){
-
-first=card;
+if(!primeira){
+primeira=card;
 return;
-
 }
 
-second=card;
-lock=true;
+segunda=card;
+trava=true;
 
-if(first.dataset.value===second.dataset.value){
+if(primeira.dataset.valor==segunda.dataset.valor){
 
-first=null;
-second=null;
-lock=false;
+primeira=null;
+segunda=null;
+trava=false;
 
-checkWin();
+verificar();
 
 }else{
 
 setTimeout(()=>{
 
-first.classList.remove("open");
-second.classList.remove("open");
+primeira.classList.remove("open");
+segunda.classList.remove("open");
 
-first=null;
-second=null;
-lock=false;
+primeira=null;
+segunda=null;
+trava=false;
 
 },800);
 
@@ -295,21 +308,81 @@ lock=false;
 
 }
 
-function checkWin(){
+function verificar(){
 
 let abertas=document.querySelectorAll(".open");
 
-if(abertas.length===deck.length){
+if(abertas.length==cartas.length){
 
-clearInterval(timerInterval);
+clearInterval(intervalo);
 
-alert("Você venceu!");
+document.getElementById("music").pause();
+
+let tempoUsado=tempoInicial-tempo;
+
+salvarRank(nome,tempoUsado);
+
+alert("Você venceu em "+tempoUsado+" segundos!");
 
 location.reload();
 
 }
 
 }
+
+function salvarRank(nome,tempo){
+
+let rank=JSON.parse(localStorage.getItem("rank"))||[];
+
+let jogador=rank.find(r=>r.nome===nome);
+
+let data=new Date().toLocaleDateString();
+
+if(jogador){
+
+if(tempo<jogador.tempo){
+jogador.tempo=tempo;
+jogador.data=data;
+}
+
+}else{
+
+rank.push({nome,tempo,data});
+
+}
+
+rank.sort((a,b)=>a.tempo-b.tempo);
+
+rank=rank.slice(0,50);
+
+localStorage.setItem("rank",JSON.stringify(rank));
+
+}
+
+function carregarRank(){
+
+let rank=JSON.parse(localStorage.getItem("rank"))||[];
+
+let tabela=document.getElementById("rankTable");
+
+rank.forEach((r,i)=>{
+
+let linha=document.createElement("tr");
+
+linha.innerHTML=`
+<td>${i+1}</td>
+<td>${r.nome}</td>
+<td>${r.tempo}s</td>
+<td>${r.data}</td>
+`;
+
+tabela.appendChild(linha);
+
+});
+
+}
+
+carregarRank();
 
 </script>
 
