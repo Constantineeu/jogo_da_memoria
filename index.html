@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Jogo da Memória - Copa do Mundo</title>
+<title>Jogo da Memória - Copa</title>
 
 <style>
 
@@ -33,30 +33,27 @@ border:none;
 border-radius:10px;
 cursor:pointer;
 margin:10px;
-}
-
-#playBtn{
 background:#1e90ff;
 color:white;
 }
 
 #board{
 display:grid;
-grid-template-columns:repeat(11,70px);
+grid-template-columns:repeat(11,80px);
 gap:8px;
 justify-content:center;
 margin-top:20px;
 }
 
 .card{
-width:70px;
-height:90px;
+width:80px;
+height:100px;
 background:#1e90ff;
 border-radius:8px;
+cursor:pointer;
 display:flex;
 align-items:center;
 justify-content:center;
-cursor:pointer;
 }
 
 .card img{
@@ -77,7 +74,7 @@ margin-top:10px;
 
 #countdown{
 position:absolute;
-font-size:90px;
+font-size:80px;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
@@ -99,7 +96,7 @@ display:none;
 
 </div>
 
-<!-- ESCOLHA DIFICULDADE -->
+<!-- DIFICULDADE -->
 <div id="difficulty">
 
 <h2>Escolha a dificuldade</h2>
@@ -181,17 +178,15 @@ let count=3;
 let el=document.getElementById("countdown");
 
 el.style.display="block";
-
 el.innerText=count;
 
 let interval=setInterval(()=>{
 
 count--;
 
-if(count==0){
+if(count===0){
 
 clearInterval(interval);
-
 el.style.display="none";
 
 startGame(tempo);
@@ -261,7 +256,6 @@ location.reload();
 function flip(card){
 
 if(lock)return;
-
 if(card.classList.contains("open"))return;
 
 card.classList.add("open");
@@ -269,21 +263,17 @@ card.classList.add("open");
 if(!first){
 
 first=card;
-
 return;
 
 }
 
 second=card;
-
 lock=true;
 
-if(first.dataset.value==second.dataset.value){
+if(first.dataset.value===second.dataset.value){
 
 first=null;
-
 second=null;
-
 lock=false;
 
 checkWin();
@@ -293,13 +283,10 @@ checkWin();
 setTimeout(()=>{
 
 first.classList.remove("open");
-
 second.classList.remove("open");
 
 first=null;
-
 second=null;
-
 lock=false;
 
 },800);
