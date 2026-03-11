@@ -9,7 +9,9 @@
 body{
 margin:0;
 font-family:Arial;
-background:#0b5fa5;
+background-image:url("img/estadio.jpg");
+background-size:cover;
+background-position:center;
 color:white;
 text-align:center;
 }
@@ -26,30 +28,43 @@ flex-direction:column;
 display:flex;
 }
 
+.menuButtons{
+display:flex;
+gap:15px;
+margin:20px;
+}
+
 button{
 padding:12px 25px;
 font-size:18px;
 border:none;
-border-radius:8px;
+border-radius:10px;
 cursor:pointer;
-margin:8px;
 background:#1e90ff;
 color:white;
 }
 
+.circleBtn{
+width:50px;
+height:50px;
+border-radius:50%;
+font-size:22px;
+padding:0;
+}
+
 #board{
 display:grid;
-grid-template-columns:repeat(11,80px);
-gap:6px;
+grid-template-columns:repeat(4,120px);
+gap:12px;
 justify-content:center;
 margin-top:20px;
 }
 
 .card{
-width:80px;
-height:100px;
+width:120px;
+height:150px;
 background:#1e90ff;
-border-radius:8px;
+border-radius:10px;
 cursor:pointer;
 display:flex;
 justify-content:center;
@@ -60,7 +75,7 @@ align-items:center;
 width:100%;
 height:100%;
 display:none;
-border-radius:8px;
+border-radius:10px;
 }
 
 .card.open img{
@@ -68,7 +83,7 @@ display:block;
 }
 
 #timer{
-font-size:24px;
+font-size:28px;
 margin:10px;
 }
 
@@ -82,11 +97,27 @@ table{
 background:white;
 color:black;
 border-collapse:collapse;
+margin-top:20px;
 }
 
 td,th{
-padding:6px 10px;
+padding:6px 12px;
 border:1px solid black;
+}
+
+.back{
+position:absolute;
+top:20px;
+left:20px;
+font-size:30px;
+cursor:pointer;
+}
+
+.rulesBox{
+background:rgba(0,0,0,0.7);
+padding:30px;
+border-radius:15px;
+max-width:600px;
 }
 
 </style>
@@ -105,7 +136,13 @@ border:1px solid black;
 <h1>JOGO DA MEMÓRIA</h1>
 <h3>Especial Copa do Mundo</h3>
 
+<div class="menuButtons">
+
 <button onclick="start()">👤 Jogar</button>
+
+<button class="circleBtn" onclick="showRules()">❓</button>
+
+</div>
 
 <h2>Ranking</h2>
 
@@ -120,9 +157,49 @@ border:1px solid black;
 
 </div>
 
+<!-- REGRAS -->
+
+<div id="rules" class="screen">
+
+<div class="back" onclick="trocarTela('menu')">⬅</div>
+
+<div class="rulesBox">
+
+<h2>Regras do Jogo</h2>
+
+<p>
+O jogo mostra várias cartas viradas para baixo.
+</p>
+
+<p>
+Clique em duas cartas para revelar os jogadores.
+</p>
+
+<p>
+Se forem iguais, o par permanece aberto.
+</p>
+
+<p>
+Se forem diferentes, elas viram novamente.
+</p>
+
+<p>
+O objetivo é encontrar todos os pares antes do tempo acabar.
+</p>
+
+<p>
+Cada dificuldade possui um tempo diferente.
+</p>
+
+</div>
+
+</div>
+
 <!-- DIFICULDADE -->
 
 <div id="difficulty" class="screen">
+
+<div class="back" onclick="trocarTela('menu')">⬅</div>
 
 <h2>Escolha a dificuldade</h2>
 
@@ -169,6 +246,10 @@ function trocarTela(id){
 document.querySelectorAll(".screen")
 .forEach(t=>t.classList.remove("active"));
 document.getElementById(id).classList.add("active");
+}
+
+function showRules(){
+trocarTela("rules");
 }
 
 function start(){
