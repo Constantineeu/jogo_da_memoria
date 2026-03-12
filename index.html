@@ -2,19 +2,20 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Jogo da Memória - Copa</title>
+<title>Memory of the Champions</title>
 
 <style>
 
 body{
 margin:0;
 font-family:Arial;
-background-image:url("img/estadio.jpg");
 background-size:cover;
 background-position:center;
 color:white;
 text-align:center;
 }
+
+/* telas */
 
 .screen{
 display:none;
@@ -26,6 +27,44 @@ flex-direction:column;
 
 .active{
 display:flex;
+}
+
+/* tela de abertura */
+
+#intro{
+background-image:url("img/tela_roxa.jpg");
+position:relative;
+}
+
+#trophy{
+width:180px;
+opacity:0;
+animation:spin 2s linear forwards;
+}
+
+@keyframes spin{
+
+0%{
+transform:rotateY(0deg);
+opacity:0;
+}
+
+20%{
+opacity:1;
+}
+
+100%{
+transform:rotateY(360deg);
+opacity:1;
+}
+
+}
+
+/* menu */
+
+#menu{
+background-image:url("img/fundo_menu.jpg");
+background-size:cover;
 }
 
 .menuButtons{
@@ -51,6 +90,8 @@ border-radius:50%;
 font-size:22px;
 padding:0;
 }
+
+/* cartas */
 
 #board{
 display:grid;
@@ -87,17 +128,10 @@ font-size:28px;
 margin:10px;
 }
 
-#countdown{
-position:absolute;
-font-size:80px;
-display:none;
-}
-
 table{
 background:white;
 color:black;
 border-collapse:collapse;
-margin-top:20px;
 }
 
 td,th{
@@ -126,15 +160,22 @@ max-width:600px;
 <body>
 
 <audio id="music" loop>
-<source src="music/stadium.mp3" type="audio/mpeg">
+<source src="music/stadium.mp3">
 </audio>
+
+<!-- INTRO -->
+
+<div id="intro" class="screen active">
+
+<img id="trophy" src="img/trofeu.png">
+
+</div>
 
 <!-- MENU -->
 
-<div id="menu" class="screen active">
+<div id="menu" class="screen">
 
-<h1>JOGO DA MEMÓRIA</h1>
-<h3>Memory of the champions</h3>
+<h1>Memory of the Champions</h1>
 
 <div class="menuButtons">
 
@@ -147,12 +188,14 @@ max-width:600px;
 <h2>Ranking</h2>
 
 <table id="rankTable">
+
 <tr>
 <th>#</th>
 <th>Nome</th>
 <th>Tempo</th>
 <th>Data</th>
 </tr>
+
 </table>
 
 </div>
@@ -165,31 +208,10 @@ max-width:600px;
 
 <div class="rulesBox">
 
-<h2>Regras do Jogo</h2>
+<h2>Regras</h2>
 
-<p>
-O jogo mostra várias cartas viradas para baixo.
-</p>
-
-<p>
-Clique em duas cartas para revelar os jogadores.
-</p>
-
-<p>
-Se forem iguais, o par permanece aberto.
-</p>
-
-<p>
-Se forem diferentes, elas viram novamente.
-</p>
-
-<p>
-O objetivo é encontrar todos os pares antes do tempo acabar.
-</p>
-
-<p>
-Cada dificuldade possui um tempo diferente.
-</p>
+<p>Encontre todos os pares antes do tempo acabar.</p>
+<p>Cada dificuldade tem um tempo diferente.</p>
 
 </div>
 
@@ -203,11 +225,11 @@ Cada dificuldade possui um tempo diferente.
 
 <h2>Escolha a dificuldade</h2>
 
-<button onclick="countdown(120)">Fácil (2 min)</button>
-<button onclick="countdown(90)">Médio (1:30)</button>
-<button onclick="countdown(60)">Normal (1 min)</button>
-<button onclick="countdown(40)">Difícil (40s)</button>
-<button onclick="countdown(20)">Extremo (20s)</button>
+<button onclick="countdown(120)">Fácil</button>
+<button onclick="countdown(90)">Médio</button>
+<button onclick="countdown(60)">Normal</button>
+<button onclick="countdown(40)">Difícil</button>
+<button onclick="countdown(20)">Extremo</button>
 
 </div>
 
@@ -223,167 +245,154 @@ Cada dificuldade possui um tempo diferente.
 
 </div>
 
-<div id="countdown"></div>
-
 <script>
 
-let nome="";
-let tempoInicial;
-let tempo;
-let intervalo;
+/* intro */
+
+setTimeout(()=>{
+
+trocarTela("menu")
+
+},3500)
+
+let nome=""
+let tempoInicial
+let tempo
+let intervalo
 
 const jogadores=[
 "messi","mbappe","neymar","modric","griezmann",
 "alvarez","vinijr","kane","debruyne","hakimi","giroud"
-];
+]
 
-let cartas=[];
-let primeira=null;
-let segunda=null;
-let trava=false;
+let cartas=[]
+let primeira=null
+let segunda=null
+let trava=false
 
 function trocarTela(id){
+
 document.querySelectorAll(".screen")
-.forEach(t=>t.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+.forEach(t=>t.classList.remove("active"))
+
+document.getElementById(id).classList.add("active")
+
 }
 
 function showRules(){
-trocarTela("rules");
+trocarTela("rules")
 }
 
 function start(){
 
-nome=prompt("Digite seu nome");
+nome=prompt("Digite seu nome")
 
-if(!nome)return;
+if(!nome)return
 
-document.getElementById("player").innerText="Jogador: "+nome;
+document.getElementById("player").innerText="Jogador: "+nome
 
-trocarTela("difficulty");
+trocarTela("difficulty")
 
 }
 
 function countdown(t){
 
-tempoInicial=t;
-tempo=t;
+tempoInicial=t
+tempo=t
 
-trocarTela("game");
+trocarTela("game")
 
-let c=3;
+document.getElementById("music").play()
 
-let el=document.getElementById("countdown");
-
-el.style.display="block";
-el.innerText=c;
-
-let cont=setInterval(()=>{
-
-c--;
-
-if(c==0){
-
-clearInterval(cont);
-el.style.display="none";
-
-document.getElementById("music").play();
-
-iniciarJogo();
-
-}else{
-
-el.innerText=c;
-
-}
-
-},1000);
+iniciarJogo()
 
 }
 
 function iniciarJogo(){
 
-cartas=[...jogadores,...jogadores];
+cartas=[...jogadores,...jogadores]
 
-cartas.sort(()=>Math.random()-0.5);
+cartas.sort(()=>Math.random()-0.5)
 
-const tab=document.getElementById("board");
+const tab=document.getElementById("board")
 
-tab.innerHTML="";
+tab.innerHTML=""
 
 cartas.forEach(j=>{
 
-let card=document.createElement("div");
-card.className="card";
-card.dataset.valor=j;
+let card=document.createElement("div")
+card.className="card"
+card.dataset.valor=j
 
-let img=document.createElement("img");
-img.src="img/"+j+".jpg";
+let img=document.createElement("img")
+img.src="img/"+j+".jpg"
 
-card.appendChild(img);
+card.appendChild(img)
 
-card.onclick=()=>virar(card);
+card.onclick=()=>virar(card)
 
-tab.appendChild(card);
+tab.appendChild(card)
 
-});
+})
 
 intervalo=setInterval(()=>{
 
-tempo--;
+tempo--
 
-document.getElementById("timer").innerText="Tempo: "+tempo+"s";
+document.getElementById("timer").innerText="Tempo: "+tempo+"s"
 
 if(tempo<=0){
 
-clearInterval(intervalo);
-document.getElementById("music").pause();
+clearInterval(intervalo)
+music.pause()
 
-alert("Game Over");
+alert("Game Over")
 
-location.reload();
+location.reload()
 
 }
 
-},1000);
+},1000)
 
 }
 
 function virar(card){
 
-if(trava)return;
-if(card.classList.contains("open"))return;
+if(trava)return
+if(card.classList.contains("open"))return
 
-card.classList.add("open");
+card.classList.add("open")
 
 if(!primeira){
-primeira=card;
-return;
+
+primeira=card
+return
+
 }
 
-segunda=card;
-trava=true;
+segunda=card
+trava=true
 
 if(primeira.dataset.valor==segunda.dataset.valor){
 
-primeira=null;
-segunda=null;
-trava=false;
+primeira=null
+segunda=null
+trava=false
 
-verificar();
+verificar()
 
 }else{
 
 setTimeout(()=>{
 
-primeira.classList.remove("open");
-segunda.classList.remove("open");
+primeira.classList.remove("open")
+segunda.classList.remove("open")
 
-primeira=null;
-segunda=null;
-trava=false;
+primeira=null
+segunda=null
+trava=false
 
-},800);
+},800)
 
 }
 
@@ -391,21 +400,21 @@ trava=false;
 
 function verificar(){
 
-let abertas=document.querySelectorAll(".open");
+let abertas=document.querySelectorAll(".open")
 
 if(abertas.length==cartas.length){
 
-clearInterval(intervalo);
+clearInterval(intervalo)
 
-document.getElementById("music").pause();
+music.pause()
 
-let tempoUsado=tempoInicial-tempo;
+let tempoUsado=tempoInicial-tempo
 
-salvarRank(nome,tempoUsado);
+salvarRank(nome,tempoUsado)
 
-alert("Você venceu em "+tempoUsado+" segundos!");
+alert("Você venceu em "+tempoUsado+" segundos!")
 
-location.reload();
+location.reload()
 
 }
 
@@ -413,57 +422,57 @@ location.reload();
 
 function salvarRank(nome,tempo){
 
-let rank=JSON.parse(localStorage.getItem("rank"))||[];
+let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
-let jogador=rank.find(r=>r.nome===nome);
+let jogador=rank.find(r=>r.nome===nome)
 
-let data=new Date().toLocaleDateString();
+let data=new Date().toLocaleDateString()
 
 if(jogador){
 
 if(tempo<jogador.tempo){
-jogador.tempo=tempo;
-jogador.data=data;
+jogador.tempo=tempo
+jogador.data=data
 }
 
 }else{
 
-rank.push({nome,tempo,data});
+rank.push({nome,tempo,data})
 
 }
 
-rank.sort((a,b)=>a.tempo-b.tempo);
+rank.sort((a,b)=>a.tempo-b.tempo)
 
-rank=rank.slice(0,50);
+rank=rank.slice(0,50)
 
-localStorage.setItem("rank",JSON.stringify(rank));
+localStorage.setItem("rank",JSON.stringify(rank))
 
 }
 
 function carregarRank(){
 
-let rank=JSON.parse(localStorage.getItem("rank"))||[];
+let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
-let tabela=document.getElementById("rankTable");
+let tabela=document.getElementById("rankTable")
 
 rank.forEach((r,i)=>{
 
-let linha=document.createElement("tr");
+let linha=document.createElement("tr")
 
 linha.innerHTML=`
 <td>${i+1}</td>
 <td>${r.nome}</td>
 <td>${r.tempo}s</td>
 <td>${r.data}</td>
-`;
+`
 
-tabela.appendChild(linha);
+tabela.appendChild(linha)
 
-});
+})
 
 }
 
-carregarRank();
+carregarRank()
 
 </script>
 
