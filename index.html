@@ -15,6 +15,8 @@ background-size:cover;
 background-position:center;
 }
 
+/* telas */
+
 .screen{
 display:none;
 height:100vh;
@@ -41,19 +43,9 @@ animation:spin 2s linear forwards;
 
 @keyframes spin{
 
-0%{
-transform:rotateY(0deg);
-opacity:0;
-}
-
-20%{
-opacity:1;
-}
-
-100%{
-transform:rotateY(360deg);
-opacity:1;
-}
+0%{transform:rotateY(0deg);opacity:0;}
+20%{opacity:1;}
+100%{transform:rotateY(360deg);opacity:1;}
 
 }
 
@@ -116,25 +108,26 @@ border-radius:10px;
 display:block;
 }
 
-#timer{
-font-size:24px;
-margin:10px;
-}
-
-#points{
-font-size:24px;
-margin:10px;
+#timer,#points{
+font-size:22px;
+margin:5px;
 }
 
 table{
 background:white;
 color:black;
 border-collapse:collapse;
+margin-top:20px;
 }
 
 td,th{
 padding:6px 12px;
 border:1px solid black;
+}
+
+.playerRow{
+background:#ddd;
+font-weight:bold;
 }
 
 .back{
@@ -176,7 +169,6 @@ max-width:600px;
 <div class="menuButtons">
 
 <button onclick="start()">Jogar</button>
-
 <button class="circleBtn" onclick="trocarTela('rules')">?</button>
 
 </div>
@@ -186,8 +178,8 @@ max-width:600px;
 <table id="rankTable">
 
 <tr>
-<th>#</th>
-<th>Nome</th>
+<th>Jogador</th>
+<th>Dificuldade</th>
 <th>Pontos</th>
 <th>Tempo</th>
 <th>Data</th>
@@ -207,13 +199,13 @@ max-width:600px;
 
 <h2>Regras</h2>
 
-<p>Encontre os pares de jogadores da Copa.</p>
+<p>Encontre os pares de jogadores.</p>
 
-<p>Cada par correto vale <b>10 pontos</b>.</p>
+<p>Cada par vale <b>10 pontos</b>.</p>
 
-<p>Se o tempo acabar, sua pontuação e tempo ainda serão salvos.</p>
+<p>Se o tempo acabar sua pontuação ainda é salva.</p>
 
-<p>Tente fazer a maior pontuação possível!</p>
+<p>O ranking guarda seu desempenho em cada dificuldade.</p>
 
 </div>
 
@@ -227,11 +219,11 @@ max-width:600px;
 
 <h2>Escolha a dificuldade</h2>
 
-<button onclick="startGame(120)">Fácil</button>
-<button onclick="startGame(90)">Médio</button>
-<button onclick="startGame(60)">Normal</button>
-<button onclick="startGame(40)">Difícil</button>
-<button onclick="startGame(20)">Extremo</button>
+<button onclick="startGame(120,'Fácil')">Fácil</button>
+<button onclick="startGame(90,'Médio')">Médio</button>
+<button onclick="startGame(60,'Normal')">Normal</button>
+<button onclick="startGame(40,'Difícil')">Difícil</button>
+<button onclick="startGame(20,'Extremo')">Extremo</button>
 
 </div>
 
@@ -242,7 +234,6 @@ max-width:600px;
 <h2 id="player"></h2>
 
 <div id="timer"></div>
-
 <div id="points">Pontos: 0</div>
 
 <div id="board"></div>
@@ -259,8 +250,8 @@ let nome=""
 let tempoInicial
 let tempo
 let intervalo
-
 let pontos=0
+let dificuldadeAtual=""
 
 const jogadores=[
 "messi","mbappe","neymar","modric","griezmann",
@@ -293,11 +284,12 @@ trocarTela("difficulty")
 
 }
 
-function startGame(t){
+function startGame(t,dif){
 
 tempoInicial=t
 tempo=t
 pontos=0
+dificuldadeAtual=dif
 
 document.getElementById("points").innerText="Pontos: 0"
 
@@ -316,7 +308,6 @@ cartas=[...jogadores,...jogadores]
 cartas.sort(()=>Math.random()-0.5)
 
 const tab=document.getElementById("board")
-
 tab.innerHTML=""
 
 cartas.forEach(j=>{
@@ -366,10 +357,8 @@ if(card.classList.contains("open"))return
 card.classList.add("open")
 
 if(!primeira){
-
 primeira=card
 return
-
 }
 
 segunda=card
@@ -425,16 +414,39 @@ function salvarRank(nome,pontos,tempo){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
-rank.push({
-nome:nome,
+let jogador=rank.find(j=>j.nome===nome)
+
+if(!jogador){
+
+jogador={nome:nome,jogos:[]}
+rank.push(jogador)
+
+}
+
+let jogo=jogador.jogos.find(j=>j.dificuldade===dificuldadeAtual)
+
+let data=new Date().toLocaleDateString()
+
+if(jogo){
+
+if(pontos>jogo.pontos){
+
+jogo.pontos=pontos
+jogo.tempo=tempo
+jogo.data=data
+
+}
+
+}else{
+
+jogador.jogos.push({
+dificuldade:dificuldadeAtual,
 pontos:pontos,
 tempo:tempo,
-data:new Date().toLocaleDateString()
+data:data
 })
 
-rank.sort((a,b)=>b.pontos-a.pontos)
-
-rank=rank.slice(0,50)
+}
 
 localStorage.setItem("rank",JSON.stringify(rank))
 
@@ -446,19 +458,32 @@ let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
 let tabela=document.getElementById("rankTable")
 
-rank.forEach((r,i)=>{
+rank.forEach(jogador=>{
+
+let linhaNome=document.createElement("tr")
+linhaNome.className="playerRow"
+
+linhaNome.innerHTML=`
+<td colspan="5">${jogador.nome}</td>
+`
+
+tabela.appendChild(linhaNome)
+
+jogador.jogos.forEach(j=>{
 
 let linha=document.createElement("tr")
 
 linha.innerHTML=`
-<td>${i+1}</td>
-<td>${r.nome}</td>
-<td>${r.pontos}</td>
-<td>${r.tempo}s</td>
-<td>${r.data}</td>
+<td></td>
+<td>${j.dificuldade}</td>
+<td>${j.pontos}</td>
+<td>${j.tempo}s</td>
+<td>${j.data}</td>
 `
 
 tabela.appendChild(linha)
+
+})
 
 })
 
