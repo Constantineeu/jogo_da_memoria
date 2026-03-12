@@ -42,11 +42,9 @@ animation:spin 2s linear forwards;
 }
 
 @keyframes spin{
-
 0%{transform:rotateY(0deg);opacity:0;}
 20%{opacity:1;}
 100%{transform:rotateY(360deg);opacity:1;}
-
 }
 
 /* menu */
@@ -78,12 +76,40 @@ border-radius:50%;
 font-size:22px;
 }
 
+/* HUD do jogo */
+
+#game{
+position:relative;
+}
+
+#timer{
+position:absolute;
+top:15px;
+right:20px;
+font-size:18px;
+background:rgba(0,0,0,0.6);
+padding:6px 12px;
+border-radius:8px;
+}
+
+#points{
+position:absolute;
+top:15px;
+left:20px;
+font-size:18px;
+background:rgba(0,0,0,0.6);
+padding:6px 12px;
+border-radius:8px;
+}
+
+/* tabuleiro */
+
 #board{
 display:grid;
 grid-template-columns:repeat(4,120px);
 gap:12px;
 justify-content:center;
-margin-top:20px;
+margin-top:60px;
 }
 
 .card{
@@ -108,10 +134,7 @@ border-radius:10px;
 display:block;
 }
 
-#timer,#points{
-font-size:22px;
-margin:5px;
-}
+/* ranking */
 
 table{
 background:white;
@@ -129,6 +152,8 @@ border:1px solid black;
 background:#ddd;
 font-weight:bold;
 }
+
+/* regras */
 
 .back{
 position:absolute;
@@ -167,16 +192,13 @@ max-width:600px;
 <h1>Memory of the Champions</h1>
 
 <div class="menuButtons">
-
 <button onclick="start()">Jogar</button>
 <button class="circleBtn" onclick="trocarTela('rules')">?</button>
-
 </div>
 
 <h2>Ranking</h2>
 
 <table id="rankTable">
-
 <tr>
 <th>Jogador</th>
 <th>Dificuldade</th>
@@ -184,7 +206,6 @@ max-width:600px;
 <th>Tempo</th>
 <th>Data</th>
 </tr>
-
 </table>
 
 </div>
@@ -199,13 +220,10 @@ max-width:600px;
 
 <h2>Regras</h2>
 
-<p>Encontre os pares de jogadores.</p>
-
+<p>Encontre os pares de jogadores da Copa.</p>
 <p>Cada par vale <b>10 pontos</b>.</p>
-
-<p>Se o tempo acabar sua pontuação ainda é salva.</p>
-
-<p>O ranking guarda seu desempenho em cada dificuldade.</p>
+<p>Mesmo se o tempo acabar, sua pontuação será salva.</p>
+<p>O ranking guarda seu resultado em cada dificuldade.</p>
 
 </div>
 
@@ -233,8 +251,8 @@ max-width:600px;
 
 <h2 id="player"></h2>
 
-<div id="timer"></div>
 <div id="points">Pontos: 0</div>
+<div id="timer">Tempo: 0</div>
 
 <div id="board"></div>
 
@@ -430,11 +448,9 @@ let data=new Date().toLocaleDateString()
 if(jogo){
 
 if(pontos>jogo.pontos){
-
 jogo.pontos=pontos
 jogo.tempo=tempo
 jogo.data=data
-
 }
 
 }else{
