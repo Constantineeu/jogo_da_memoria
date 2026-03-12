@@ -9,13 +9,11 @@
 body{
 margin:0;
 font-family:Arial;
-background-size:cover;
-background-position:center;
 color:white;
 text-align:center;
+background-size:cover;
+background-position:center;
 }
-
-/* telas */
 
 .screen{
 display:none;
@@ -29,11 +27,10 @@ flex-direction:column;
 display:flex;
 }
 
-/* tela de abertura */
+/* intro */
 
 #intro{
 background-image:url("img/tela_roxa.jpg");
-position:relative;
 }
 
 #trophy{
@@ -64,7 +61,6 @@ opacity:1;
 
 #menu{
 background-image:url("img/fundo_menu.jpg");
-background-size:cover;
 }
 
 .menuButtons{
@@ -88,10 +84,7 @@ width:50px;
 height:50px;
 border-radius:50%;
 font-size:22px;
-padding:0;
 }
-
-/* cartas */
 
 #board{
 display:grid;
@@ -124,7 +117,12 @@ display:block;
 }
 
 #timer{
-font-size:28px;
+font-size:24px;
+margin:10px;
+}
+
+#points{
+font-size:24px;
 margin:10px;
 }
 
@@ -166,9 +164,7 @@ max-width:600px;
 <!-- INTRO -->
 
 <div id="intro" class="screen active">
-
 <img id="trophy" src="img/trofeu.png">
-
 </div>
 
 <!-- MENU -->
@@ -179,9 +175,9 @@ max-width:600px;
 
 <div class="menuButtons">
 
-<button onclick="start()">👤 Jogar</button>
+<button onclick="start()">Jogar</button>
 
-<button class="circleBtn" onclick="showRules()">❓</button>
+<button class="circleBtn" onclick="trocarTela('rules')">?</button>
 
 </div>
 
@@ -192,6 +188,7 @@ max-width:600px;
 <tr>
 <th>#</th>
 <th>Nome</th>
+<th>Pontos</th>
 <th>Tempo</th>
 <th>Data</th>
 </tr>
@@ -210,8 +207,13 @@ max-width:600px;
 
 <h2>Regras</h2>
 
-<p>Encontre todos os pares antes do tempo acabar.</p>
-<p>Cada dificuldade tem um tempo diferente.</p>
+<p>Encontre os pares de jogadores da Copa.</p>
+
+<p>Cada par correto vale <b>10 pontos</b>.</p>
+
+<p>Se o tempo acabar, sua pontuação e tempo ainda serão salvos.</p>
+
+<p>Tente fazer a maior pontuação possível!</p>
 
 </div>
 
@@ -225,11 +227,11 @@ max-width:600px;
 
 <h2>Escolha a dificuldade</h2>
 
-<button onclick="countdown(120)">Fácil</button>
-<button onclick="countdown(90)">Médio</button>
-<button onclick="countdown(60)">Normal</button>
-<button onclick="countdown(40)">Difícil</button>
-<button onclick="countdown(20)">Extremo</button>
+<button onclick="startGame(120)">Fácil</button>
+<button onclick="startGame(90)">Médio</button>
+<button onclick="startGame(60)">Normal</button>
+<button onclick="startGame(40)">Difícil</button>
+<button onclick="startGame(20)">Extremo</button>
 
 </div>
 
@@ -241,24 +243,24 @@ max-width:600px;
 
 <div id="timer"></div>
 
+<div id="points">Pontos: 0</div>
+
 <div id="board"></div>
 
 </div>
 
 <script>
 
-/* intro */
-
 setTimeout(()=>{
-
 trocarTela("menu")
-
 },3500)
 
 let nome=""
 let tempoInicial
 let tempo
 let intervalo
+
+let pontos=0
 
 const jogadores=[
 "messi","mbappe","neymar","modric","griezmann",
@@ -279,10 +281,6 @@ document.getElementById(id).classList.add("active")
 
 }
 
-function showRules(){
-trocarTela("rules")
-}
-
 function start(){
 
 nome=prompt("Digite seu nome")
@@ -295,10 +293,13 @@ trocarTela("difficulty")
 
 }
 
-function countdown(t){
+function startGame(t){
 
 tempoInicial=t
 tempo=t
+pontos=0
+
+document.getElementById("points").innerText="Pontos: 0"
 
 trocarTela("game")
 
@@ -344,9 +345,10 @@ document.getElementById("timer").innerText="Tempo: "+tempo+"s"
 if(tempo<=0){
 
 clearInterval(intervalo)
-music.pause()
 
-alert("Game Over")
+salvarRank(nome,pontos,tempoInicial)
+
+alert("Tempo acabou! Pontos: "+pontos)
 
 location.reload()
 
@@ -374,6 +376,9 @@ segunda=card
 trava=true
 
 if(primeira.dataset.valor==segunda.dataset.valor){
+
+pontos+=10
+document.getElementById("points").innerText="Pontos: "+pontos
 
 primeira=null
 segunda=null
@@ -406,13 +411,9 @@ if(abertas.length==cartas.length){
 
 clearInterval(intervalo)
 
-music.pause()
+salvarRank(nome,pontos,tempoInicial-tempo)
 
-let tempoUsado=tempoInicial-tempo
-
-salvarRank(nome,tempoUsado)
-
-alert("Você venceu em "+tempoUsado+" segundos!")
+alert("Você venceu! Pontos: "+pontos)
 
 location.reload()
 
@@ -420,28 +421,18 @@ location.reload()
 
 }
 
-function salvarRank(nome,tempo){
+function salvarRank(nome,pontos,tempo){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
-let jogador=rank.find(r=>r.nome===nome)
+rank.push({
+nome:nome,
+pontos:pontos,
+tempo:tempo,
+data:new Date().toLocaleDateString()
+})
 
-let data=new Date().toLocaleDateString()
-
-if(jogador){
-
-if(tempo<jogador.tempo){
-jogador.tempo=tempo
-jogador.data=data
-}
-
-}else{
-
-rank.push({nome,tempo,data})
-
-}
-
-rank.sort((a,b)=>a.tempo-b.tempo)
+rank.sort((a,b)=>b.pontos-a.pontos)
 
 rank=rank.slice(0,50)
 
@@ -462,6 +453,7 @@ let linha=document.createElement("tr")
 linha.innerHTML=`
 <td>${i+1}</td>
 <td>${r.nome}</td>
+<td>${r.pontos}</td>
 <td>${r.tempo}s</td>
 <td>${r.data}</td>
 `
