@@ -15,8 +15,6 @@ background-size:cover;
 background-position:center;
 }
 
-/* telas */
-
 .screen{
 display:none;
 height:100vh;
@@ -29,7 +27,7 @@ flex-direction:column;
 display:flex;
 }
 
-/* intro */
+/* INTRO */
 
 #intro{
 background-image:url("img/tela_roxa.jpg");
@@ -47,7 +45,7 @@ animation:spin 2s linear forwards;
 100%{transform:rotateY(360deg);opacity:1;}
 }
 
-/* menu */
+/* MENU */
 
 #menu{
 background-image:url("img/fundo_menu.jpg");
@@ -76,7 +74,7 @@ border-radius:50%;
 font-size:22px;
 }
 
-/* HUD do jogo */
+/* HUD */
 
 #game{
 position:relative;
@@ -86,7 +84,6 @@ position:relative;
 position:absolute;
 top:15px;
 right:20px;
-font-size:18px;
 background:rgba(0,0,0,0.6);
 padding:6px 12px;
 border-radius:8px;
@@ -96,13 +93,12 @@ border-radius:8px;
 position:absolute;
 top:15px;
 left:20px;
-font-size:18px;
 background:rgba(0,0,0,0.6);
 padding:6px 12px;
 border-radius:8px;
 }
 
-/* tabuleiro */
+/* TABULEIRO */
 
 #board{
 display:grid;
@@ -134,7 +130,7 @@ border-radius:10px;
 display:block;
 }
 
-/* ranking */
+/* RANK */
 
 table{
 background:white;
@@ -153,7 +149,7 @@ background:#ddd;
 font-weight:bold;
 }
 
-/* regras */
+/* REGRAS */
 
 .back{
 position:absolute;
@@ -221,9 +217,12 @@ max-width:600px;
 <h2>Regras</h2>
 
 <p>Encontre os pares de jogadores da Copa.</p>
+
 <p>Cada par vale <b>10 pontos</b>.</p>
-<p>Mesmo se o tempo acabar, sua pontuação será salva.</p>
-<p>O ranking guarda seu resultado em cada dificuldade.</p>
+
+<p>Se o tempo acabar sua pontuação será salva.</p>
+
+<p>O ranking guarda sua pontuação por dificuldade.</p>
 
 </div>
 
@@ -260,9 +259,7 @@ max-width:600px;
 
 <script>
 
-setTimeout(()=>{
-trocarTela("menu")
-},3500)
+setTimeout(()=>{trocarTela("menu")},3500)
 
 let nome=""
 let tempoInicial
@@ -270,6 +267,7 @@ let tempo
 let intervalo
 let pontos=0
 let dificuldadeAtual=""
+let jogoAtivo=true
 
 const jogadores=[
 "messi","mbappe","neymar","modric","griezmann",
@@ -308,6 +306,7 @@ tempoInicial=t
 tempo=t
 pontos=0
 dificuldadeAtual=dif
+jogoAtivo=true
 
 document.getElementById("points").innerText="Pontos: 0"
 
@@ -322,7 +321,6 @@ iniciarJogo()
 function iniciarJogo(){
 
 cartas=[...jogadores,...jogadores]
-
 cartas.sort(()=>Math.random()-0.5)
 
 const tab=document.getElementById("board")
@@ -354,6 +352,7 @@ document.getElementById("timer").innerText="Tempo: "+tempo+"s"
 if(tempo<=0){
 
 clearInterval(intervalo)
+jogoAtivo=false
 
 salvarRank(nome,pontos,tempoInicial)
 
@@ -369,6 +368,7 @@ location.reload()
 
 function virar(card){
 
+if(!jogoAtivo) return
 if(trava)return
 if(card.classList.contains("open"))return
 
@@ -417,6 +417,7 @@ let abertas=document.querySelectorAll(".open")
 if(abertas.length==cartas.length){
 
 clearInterval(intervalo)
+jogoAtivo=false
 
 salvarRank(nome,pontos,tempoInicial-tempo)
 
@@ -479,10 +480,7 @@ rank.forEach(jogador=>{
 let linhaNome=document.createElement("tr")
 linhaNome.className="playerRow"
 
-linhaNome.innerHTML=`
-<td colspan="5">${jogador.nome}</td>
-`
-
+linhaNome.innerHTML=`<td colspan="5">${jogador.nome}</td>`
 tabela.appendChild(linhaNome)
 
 jogador.jogos.forEach(j=>{
