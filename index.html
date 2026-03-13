@@ -100,7 +100,7 @@ cursor:pointer;
 color:black;
 }
 
-/* hud */
+/* HUD */
 
 #game{
 position:relative;
@@ -301,8 +301,6 @@ document.getElementById(id).classList.add("active")
 
 }
 
-/* iniciar */
-
 function start(){
 
 nome=prompt("Digite seu nome")
@@ -333,8 +331,6 @@ document.getElementById("music").play()
 iniciarJogo()
 
 }
-
-/* tabuleiro */
 
 function iniciarJogo(){
 
@@ -370,16 +366,12 @@ tempo--
 document.getElementById("timer").innerText="Tempo: "+tempo+"s"
 
 if(tempo<=0){
-
 gameOver()
-
 }
 
 },1000)
 
 }
-
-/* virar carta */
 
 function virar(card){
 
@@ -425,8 +417,6 @@ trava=false
 
 }
 
-/* verificar vitória */
-
 function verificar(){
 
 let abertas=document.querySelectorAll(".card.open")
@@ -448,8 +438,6 @@ location.reload()
 
 }
 
-/* game over */
-
 function gameOver(){
 
 clearInterval(intervalo)
@@ -466,19 +454,47 @@ location.reload()
 
 }
 
-/* ranking */
+/* RANKING */
 
 function salvarRank(nome,pontos,tempo){
 
-let rank=JSON.parse(localStorage.getItem("rank"))||[]
+let rank = JSON.parse(localStorage.getItem("rank")) || []
 
-rank.push({
+let jogador = rank.find(j => j.nome === nome)
+
+if(!jogador){
+
+jogador = {
 nome:nome,
+jogos:[]
+}
+
+rank.push(jogador)
+
+}
+
+let jogo = jogador.jogos.find(j => j.dificuldade === dificuldadeAtual)
+
+let data = new Date().toLocaleDateString()
+
+if(jogo){
+
+if(pontos > jogo.pontos){
+jogo.pontos = pontos
+jogo.tempo = tempo
+jogo.data = data
+}
+
+}else{
+
+jogador.jogos.push({
 dificuldade:dificuldadeAtual,
 pontos:pontos,
 tempo:tempo,
-data:new Date().toLocaleDateString()
+data:data
 })
+
+}
 
 localStorage.setItem("rank",JSON.stringify(rank))
 
@@ -486,16 +502,25 @@ localStorage.setItem("rank",JSON.stringify(rank))
 
 function carregarRank(){
 
-let rank=JSON.parse(localStorage.getItem("rank"))||[]
+let rank = JSON.parse(localStorage.getItem("rank")) || []
 
-let tabela=document.getElementById("rankTable")
+let tabela = document.getElementById("rankTable")
 
-rank.forEach(j=>{
+rank.forEach(jogador => {
 
-let linha=document.createElement("tr")
+let linhaNome = document.createElement("tr")
+linhaNome.className="playerRow"
+
+linhaNome.innerHTML=`<td colspan="5">${jogador.nome}</td>`
+
+tabela.appendChild(linhaNome)
+
+jogador.jogos.forEach(j => {
+
+let linha = document.createElement("tr")
 
 linha.innerHTML=`
-<td>${j.nome}</td>
+<td></td>
 <td>${j.dificuldade}</td>
 <td>${j.pontos}</td>
 <td>${j.tempo}s</td>
@@ -503,6 +528,8 @@ linha.innerHTML=`
 `
 
 tabela.appendChild(linha)
+
+})
 
 })
 
