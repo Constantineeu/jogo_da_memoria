@@ -9,8 +9,8 @@
 body{
 margin:0;
 font-family:Arial;
-color:white;
 text-align:center;
+color:white;
 background-size:cover;
 background-position:center;
 background-repeat:no-repeat;
@@ -41,14 +41,12 @@ background-image:url("img/tela_roxa.jpg");
 
 #trophy{
 width:180px;
-opacity:0;
-animation:spin 2s linear forwards;
+animation:spin 3s linear;
 }
 
 @keyframes spin{
-0%{transform:rotateY(0deg);opacity:0;}
-20%{opacity:1;}
-100%{transform:rotateY(360deg);opacity:1;}
+0%{transform:rotateY(0deg)}
+100%{transform:rotateY(360deg)}
 }
 
 /* menu */
@@ -80,17 +78,41 @@ border-radius:50%;
 font-size:22px;
 }
 
-/* HUD */
+/* regras */
+
+#rules{
+background:#8ED081;
+}
+
+.rulesBox{
+background:#2E7D32;
+padding:30px;
+border-radius:15px;
+max-width:600px;
+}
+
+.back{
+position:absolute;
+top:20px;
+left:20px;
+font-size:30px;
+cursor:pointer;
+color:black;
+}
+
+/* hud */
 
 #game{
 position:relative;
+color:black;
 }
 
 #timer{
 position:absolute;
 top:15px;
 right:20px;
-background:rgba(0,0,0,0.6);
+background:#555;
+color:white;
 padding:6px 12px;
 border-radius:8px;
 }
@@ -99,25 +121,26 @@ border-radius:8px;
 position:absolute;
 top:15px;
 left:20px;
-background:rgba(0,0,0,0.6);
+background:#555;
+color:white;
 padding:6px 12px;
 border-radius:8px;
 }
 
-/* cartas */
+/* tabuleiro */
 
 #board{
 display:grid;
 grid-template-columns:repeat(4,120px);
-gap:12px;
+gap:15px;
 justify-content:center;
-margin-top:60px;
+margin-top:70px;
 }
 
 .card{
 width:120px;
 height:150px;
-background:#1e90ff;
+background:#2E86DE;
 border-radius:10px;
 cursor:pointer;
 display:flex;
@@ -153,23 +176,6 @@ border:1px solid black;
 .playerRow{
 background:#ddd;
 font-weight:bold;
-}
-
-/* regras */
-
-.back{
-position:absolute;
-top:20px;
-left:20px;
-font-size:30px;
-cursor:pointer;
-}
-
-.rulesBox{
-background:rgba(0,0,0,0.7);
-padding:30px;
-border-radius:15px;
-max-width:600px;
 }
 
 </style>
@@ -223,8 +229,11 @@ max-width:600px;
 <h2>Regras</h2>
 
 <p>Encontre os pares de jogadores.</p>
-<P>O tempo de jogo muda com a dificuldade.</p>
+
+<p>O tempo de jogo muda com a dificuldade.</p>
+
 <p>Cada par vale <b>10 pontos</b>.</p>
+
 <p>Mesmo se o tempo acabar sua pontuação será salva.</p>
 
 </div>
@@ -262,7 +271,7 @@ max-width:600px;
 
 <script>
 
-setTimeout(()=>{trocarTela("menu")},3500)
+setTimeout(()=>trocarTela("menu"),3500)
 
 let nome=""
 let tempoInicial
@@ -270,7 +279,7 @@ let tempo
 let intervalo
 let pontos=0
 let dificuldadeAtual=""
-let jogoAtivo=true
+let jogoAtivo=false
 
 const jogadores=[
 "messi","mbappe","neymar","modric","griezmann",
@@ -284,12 +293,15 @@ let trava=false
 
 function trocarTela(id){
 
-document.querySelectorAll(".screen")
-.forEach(t=>t.classList.remove("active"))
+document.querySelectorAll(".screen").forEach(t=>{
+t.classList.remove("active")
+})
 
 document.getElementById(id).classList.add("active")
 
 }
+
+/* iniciar */
 
 function start(){
 
@@ -312,6 +324,7 @@ dificuldadeAtual=dif
 jogoAtivo=true
 
 document.getElementById("points").innerText="Pontos: 0"
+document.getElementById("timer").innerText="Tempo: "+tempo+"s"
 
 trocarTela("game")
 
@@ -320,6 +333,8 @@ document.getElementById("music").play()
 iniciarJogo()
 
 }
+
+/* tabuleiro */
 
 function iniciarJogo(){
 
@@ -348,27 +363,23 @@ tab.appendChild(card)
 
 intervalo=setInterval(()=>{
 
+if(!jogoAtivo)return
+
 tempo--
 
 document.getElementById("timer").innerText="Tempo: "+tempo+"s"
 
 if(tempo<=0){
 
-clearInterval(intervalo)
-jogoAtivo=false
-document.getElementById("music").pause()
-
-salvarRank(nome,pontos,tempoInicial)
-
-alert("Tempo acabou! Pontos: "+pontos)
-
-location.reload()
+gameOver()
 
 }
 
 },1000)
 
 }
+
+/* virar carta */
 
 function virar(card){
 
@@ -386,7 +397,7 @@ return
 segunda=card
 trava=true
 
-if(primeira.dataset.valor==segunda.dataset.valor){
+if(primeira.dataset.valor===segunda.dataset.valor){
 
 pontos+=10
 document.getElementById("points").innerText="Pontos: "+pontos
@@ -414,14 +425,17 @@ trava=false
 
 }
 
+/* verificar vitória */
+
 function verificar(){
 
-let abertas=document.querySelectorAll(".open")
+let abertas=document.querySelectorAll(".card.open")
 
-if(abertas.length==cartas.length){
+if(abertas.length===cartas.length){
 
 clearInterval(intervalo)
 jogoAtivo=false
+
 document.getElementById("music").pause()
 
 salvarRank(nome,pontos,tempoInicial-tempo)
@@ -434,41 +448,37 @@ location.reload()
 
 }
 
+/* game over */
+
+function gameOver(){
+
+clearInterval(intervalo)
+
+jogoAtivo=false
+
+document.getElementById("music").pause()
+
+salvarRank(nome,pontos,tempoInicial)
+
+alert("Game Over! Pontos: "+pontos)
+
+location.reload()
+
+}
+
+/* ranking */
+
 function salvarRank(nome,pontos,tempo){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
-let jogador=rank.find(j=>j.nome===nome)
-
-if(!jogador){
-
-jogador={nome:nome,jogos:[]}
-rank.push(jogador)
-
-}
-
-let jogo=jogador.jogos.find(j=>j.dificuldade===dificuldadeAtual)
-
-let data=new Date().toLocaleDateString()
-
-if(jogo){
-
-if(pontos>jogo.pontos){
-jogo.pontos=pontos
-jogo.tempo=tempo
-jogo.data=data
-}
-
-}else{
-
-jogador.jogos.push({
+rank.push({
+nome:nome,
 dificuldade:dificuldadeAtual,
 pontos:pontos,
 tempo:tempo,
-data:data
+data:new Date().toLocaleDateString()
 })
-
-}
 
 localStorage.setItem("rank",JSON.stringify(rank))
 
@@ -480,20 +490,12 @@ let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
 let tabela=document.getElementById("rankTable")
 
-rank.forEach(jogador=>{
-
-let linhaNome=document.createElement("tr")
-linhaNome.className="playerRow"
-
-linhaNome.innerHTML=`<td colspan="5">${jogador.nome}</td>`
-tabela.appendChild(linhaNome)
-
-jogador.jogos.forEach(j=>{
+rank.forEach(j=>{
 
 let linha=document.createElement("tr")
 
 linha.innerHTML=`
-<td></td>
+<td>${j.nome}</td>
 <td>${j.dificuldade}</td>
 <td>${j.pontos}</td>
 <td>${j.tempo}s</td>
@@ -501,8 +503,6 @@ linha.innerHTML=`
 `
 
 tabela.appendChild(linha)
-
-})
 
 })
 
