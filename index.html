@@ -10,8 +10,8 @@
 body{
 margin:0;
 font-family:Arial;
-text-align:center;
 color:white;
+text-align:center;
 background-size:cover;
 background-position:center;
 background-repeat:no-repeat;
@@ -41,7 +41,7 @@ background-image:url("img/tela_roxa.jpg");
 }
 
 #trophy{
-width:200px;
+width:180px;
 animation:spin 3s linear;
 }
 
@@ -76,21 +76,21 @@ color:white;
 width:50px;
 height:50px;
 border-radius:50%;
-font-size:22px;
+font-size:20px;
 }
 
 /* REGRAS */
 
 #rules{
-background:#8ED081;
+background:#90EE90;
 color:black;
 }
 
 .rulesBox{
-background:#2E7D32;
+background:#006400;
+padding:25px;
+border-radius:12px;
 color:white;
-padding:30px;
-border-radius:15px;
 max-width:600px;
 }
 
@@ -113,8 +113,8 @@ position:absolute;
 top:10px;
 right:20px;
 background:#00000088;
-padding:8px 15px;
-border-radius:10px;
+padding:8px 14px;
+border-radius:8px;
 }
 
 #points{
@@ -122,28 +122,28 @@ position:absolute;
 top:10px;
 left:20px;
 background:#00000088;
-padding:8px 15px;
-border-radius:10px;
+padding:8px 14px;
+border-radius:8px;
 }
 
 /* TABULEIRO */
 
 #board{
 display:grid;
-grid-template-columns:repeat(4,120px);
-gap:15px;
+grid-template-columns:repeat(4,130px);
+gap:12px;
 margin-top:80px;
 }
 
 .card{
-width:120px;
-height:150px;
-background:#2E86DE;
+width:130px;
+height:160px;
+background:#1e90ff;
 border-radius:10px;
-cursor:pointer;
 display:flex;
-justify-content:center;
 align-items:center;
+justify-content:center;
+cursor:pointer;
 }
 
 .card img{
@@ -157,7 +157,7 @@ border-radius:10px;
 display:block;
 }
 
-/* RANKING */
+/* RANK */
 
 table{
 background:white;
@@ -167,8 +167,8 @@ margin-top:20px;
 }
 
 td,th{
-padding:6px 12px;
 border:1px solid black;
+padding:6px 10px;
 }
 
 .playerRow{
@@ -227,11 +227,11 @@ font-weight:bold;
 
 <h2>Regras</h2>
 
-<p>Encontre os pares de jogadores da Copa.</p>
+<p>Encontre os pares de jogadores.</p>
 
 <p>Cada par vale <b>10 pontos</b>.</p>
 
-<p>O tempo muda de acordo com a dificuldade.</p>
+<p>O tempo depende da dificuldade.</p>
 
 <p>Mesmo se o tempo acabar sua pontuação será salva.</p>
 
@@ -245,7 +245,7 @@ font-weight:bold;
 
 <div class="back" onclick="trocarTela('menu')">⬅</div>
 
-<h2>Escolha a dificuldade</h2>
+<h2>Dificuldade</h2>
 
 <button onclick="startGame(120,'Fácil')">Fácil</button> <button onclick="startGame(90,'Médio')">Médio</button> <button onclick="startGame(60,'Normal')">Normal</button> <button onclick="startGame(40,'Difícil')">Difícil</button> <button onclick="startGame(20,'Extremo')">Extremo</button>
 
@@ -266,16 +266,16 @@ font-weight:bold;
 
 <script>
 
-/* INTRO */
+/* intro */
 
 setTimeout(()=>trocarTela("menu"),3500)
 
-/* VARIÁVEIS */
+/* variaveis */
 
 let nome=""
-let tempoInicial
-let tempo
-let intervalo
+let tempo=0
+let tempoInicial=0
+let intervalo=null
 let pontos=0
 let dificuldadeAtual=""
 let jogoAtivo=false
@@ -290,19 +290,19 @@ let primeira=null
 let segunda=null
 let trava=false
 
-/* TROCAR TELA */
+/* trocar tela */
 
 function trocarTela(id){
 
-document.querySelectorAll(".screen").forEach(t=>{
-t.classList.remove("active")
+document.querySelectorAll(".screen").forEach(s=>{
+s.classList.remove("active")
 })
 
 document.getElementById(id).classList.add("active")
 
 }
 
-/* START */
+/* iniciar */
 
 function start(){
 
@@ -316,36 +316,50 @@ trocarTela("difficulty")
 
 }
 
-/* INICIAR PARTIDA */
+/* iniciar jogo */
 
 function startGame(t,dif){
 
-tempoInicial=t
 tempo=t
+tempoInicial=t
 pontos=0
 dificuldadeAtual=dif
 jogoAtivo=true
 
 document.getElementById("points").innerText="Pontos: 0"
-document.getElementById("timer").innerText="Tempo: "+tempo+"s"
+document.getElementById("timer").innerText="Tempo: "+tempo
 
 trocarTela("game")
 
 document.getElementById("music").play()
 
-iniciarJogo()
+criarTabuleiro()
+
+intervalo=setInterval(()=>{
+
+if(!jogoAtivo)return
+
+tempo--
+
+document.getElementById("timer").innerText="Tempo: "+tempo
+
+if(tempo<=0){
+gameOver()
+}
+
+},1000)
 
 }
 
-/* TABULEIRO */
+/* tabuleiro */
 
-function iniciarJogo(){
+function criarTabuleiro(){
 
 cartas=[...jogadores,...jogadores]
 cartas.sort(()=>Math.random()-0.5)
 
-const tab=document.getElementById("board")
-tab.innerHTML=""
+const board=document.getElementById("board")
+board.innerHTML=""
 
 cartas.forEach(j=>{
 
@@ -360,28 +374,13 @@ card.appendChild(img)
 
 card.onclick=()=>virar(card)
 
-tab.appendChild(card)
+board.appendChild(card)
 
 })
 
-intervalo=setInterval(()=>{
-
-if(!jogoAtivo)return
-
-tempo--
-
-document.getElementById("timer").innerText="Tempo: "+tempo+"s"
-
-if(tempo<=0){
-tempo=0
-gameOver()
 }
 
-},1000)
-
-}
-
-/* VIRAR CARTA */
+/* virar */
 
 function virar(card){
 
@@ -402,6 +401,7 @@ trava=true
 if(primeira.dataset.valor===segunda.dataset.valor){
 
 pontos+=10
+
 document.getElementById("points").innerText="Pontos: "+pontos
 
 primeira=null
@@ -427,7 +427,7 @@ trava=false
 
 }
 
-/* VERIFICAR VITÓRIA */
+/* verificar */
 
 function verificar(){
 
@@ -435,24 +435,23 @@ let abertas=document.querySelectorAll(".card.open")
 
 if(abertas.length===cartas.length){
 
-clearInterval(intervalo)
-jogoAtivo=false
-
-document.getElementById("music").pause()
-
-salvarRank(nome,pontos,tempoInicial-tempo)
-
-alert("Você venceu! Pontos: "+pontos)
-
-location.reload()
+encerrarJogo(true)
 
 }
 
 }
 
-/* GAME OVER */
+/* game over */
 
 function gameOver(){
+
+encerrarJogo(false)
+
+}
+
+/* encerrar */
+
+function encerrarJogo(vitoria){
 
 if(!jogoAtivo)return
 
@@ -462,19 +461,23 @@ clearInterval(intervalo)
 
 document.getElementById("music").pause()
 
-salvarRank(nome,pontos,tempoInicial)
+salvarRank(nome,pontos,tempoInicial-tempo)
 
 setTimeout(()=>{
 
+if(vitoria){
+alert("Você venceu! Pontos: "+pontos)
+}else{
 alert("Game Over! Pontos: "+pontos)
+}
 
 location.reload()
 
-},200)
+},300)
 
 }
 
-/* SALVAR RANK */
+/* salvar rank */
 
 function salvarRank(nome,pontos,tempo){
 
@@ -496,9 +499,11 @@ let data=new Date().toLocaleDateString()
 if(jogo){
 
 if(pontos>jogo.pontos){
+
 jogo.pontos=pontos
 jogo.tempo=tempo
 jogo.data=data
+
 }
 
 }else{
@@ -516,7 +521,7 @@ localStorage.setItem("rank",JSON.stringify(rank))
 
 }
 
-/* CARREGAR RANK */
+/* carregar rank */
 
 function carregarRank(){
 
@@ -524,25 +529,25 @@ let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
 let tabela=document.getElementById("rankTable")
 
-rank.forEach(jogador=>{
+rank.forEach(j=>{
 
 let linhaNome=document.createElement("tr")
 linhaNome.className="playerRow"
 
-linhaNome.innerHTML=`<td colspan="5">${jogador.nome}</td>`
+linhaNome.innerHTML=`<td colspan="5">${j.nome}</td>`
 
 tabela.appendChild(linhaNome)
 
-jogador.jogos.forEach(j=>{
+j.jogos.forEach(g=>{
 
 let linha=document.createElement("tr")
 
 linha.innerHTML=`
 <td></td>
-<td>${j.dificuldade}</td>
-<td>${j.pontos}</td>
-<td>${j.tempo}s</td>
-<td>${j.data}</td>
+<td>${g.dificuldade}</td>
+<td>${g.pontos}</td>
+<td>${g.tempo}s</td>
+<td>${g.data}</td>
 `
 
 tabela.appendChild(linha)
