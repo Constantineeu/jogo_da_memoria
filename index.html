@@ -6,7 +6,6 @@
 <title>Memory of the Champions</title>
 
 <style>
-
 body{
 margin:0;
 font-family:Arial;
@@ -27,9 +26,7 @@ background-size:cover;
 background-position:center;
 }
 
-.active{
-display:flex;
-}
+.active{display:flex}
 
 /* INTRO */
 
@@ -122,7 +119,7 @@ padding:8px 15px;
 border-radius:8px;
 }
 
-/* TABULEIRO */
+/* BOARD */
 
 #board{
 display:grid;
@@ -182,13 +179,9 @@ font-weight:bold;
 <source src="music/stadium.mp3">
 </audio>
 
-<!-- INTRO -->
-
 <div id="intro" class="screen active">
 <img id="trophy" src="img/trofeu.png">
 </div>
-
-<!-- MENU -->
 
 <div id="menu" class="screen">
 
@@ -213,8 +206,6 @@ font-weight:bold;
 
 </div>
 
-<!-- REGRAS -->
-
 <div id="rules" class="screen">
 
 <div class="back" onclick="trocarTela('menu')">⬅</div>
@@ -232,19 +223,15 @@ font-weight:bold;
 
 </div>
 
-<!-- DIFICULDADE -->
-
 <div id="difficulty" class="screen">
 
 <div class="back" onclick="trocarTela('menu')">⬅</div>
 
-<h2>Escolha a dificuldade</h2>
+<h2>Dificuldade</h2>
 
 <button onclick="startGame(120,'Fácil')">Fácil</button> <button onclick="startGame(90,'Médio')">Médio</button> <button onclick="startGame(60,'Normal')">Normal</button> <button onclick="startGame(40,'Difícil')">Difícil</button> <button onclick="startGame(20,'Extremo')">Extremo</button>
 
 </div>
-
-<!-- JOGO -->
 
 <div id="game" class="screen">
 
@@ -259,18 +246,13 @@ font-weight:bold;
 
 <script>
 
-/* intro */
-
 setTimeout(()=>trocarTela("menu"),3500)
 
-/* variáveis */
-
 let nome=""
-let tempo=0
-let tempoInicial=0
-let intervalo
 let pontos=0
 let dificuldadeAtual=""
+let tempoFinal=0
+let timerInterval
 let jogoAtivo=false
 
 const jogadores=[
@@ -283,24 +265,14 @@ let primeira=null
 let segunda=null
 let trava=false
 
-/* trocar tela */
-
 function trocarTela(id){
-
-document.querySelectorAll(".screen").forEach(s=>{
-s.classList.remove("active")
-})
-
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
 document.getElementById(id).classList.add("active")
-
 }
-
-/* iniciar */
 
 function start(){
 
 nome=prompt("Digite seu nome")
-
 if(!nome)return
 
 document.getElementById("player").innerText="Jogador: "+nome
@@ -309,18 +281,15 @@ trocarTela("difficulty")
 
 }
 
-/* iniciar partida */
+function startGame(segundos,dif){
 
-function startGame(t,dif){
-
-tempo=t
-tempoInicial=t
 pontos=0
 dificuldadeAtual=dif
 jogoAtivo=true
 
 document.getElementById("points").innerText="Pontos: 0"
-document.getElementById("timer").innerText="Tempo: "+tempo
+
+tempoFinal=Date.now() + segundos*1000
 
 trocarTela("game")
 
@@ -328,28 +297,27 @@ document.getElementById("music").play()
 
 criarTabuleiro()
 
-intervalo=setInterval(()=>{
+timerInterval=setInterval(atualizarTempo,500)
+
+}
+
+function atualizarTempo(){
 
 if(!jogoAtivo)return
 
-tempo--
+let restante=Math.floor((tempoFinal-Date.now())/1000)
 
-document.getElementById("timer").innerText="Tempo: "+tempo
+if(restante<0) restante=0
 
-if(tempo<=0){
+document.getElementById("timer").innerText="Tempo: "+restante
 
-tempo=0
-document.getElementById("timer").innerText="Tempo: 0"
+if(restante<=0){
 
-gameOver()
-
-}
-
-},1000)
+encerrar(false)
 
 }
 
-/* criar cartas */
+}
 
 function criarTabuleiro(){
 
@@ -378,8 +346,6 @@ board.appendChild(card)
 
 }
 
-/* virar carta */
-
 function virar(card){
 
 if(!jogoAtivo)return
@@ -399,7 +365,6 @@ trava=true
 if(primeira.dataset.valor===segunda.dataset.valor){
 
 pontos+=10
-
 document.getElementById("points").innerText="Pontos: "+pontos
 
 primeira=null
@@ -425,8 +390,6 @@ trava=false
 
 }
 
-/* verificar vitória */
-
 function verificar(){
 
 let abertas=document.querySelectorAll(".card.open")
@@ -439,31 +402,19 @@ encerrar(true)
 
 }
 
-/* game over */
-
-function gameOver(){
-
-encerrar(false)
-
-}
-
-/* encerrar jogo */
-
 function encerrar(vitoria){
 
 if(!jogoAtivo)return
 
 jogoAtivo=false
 
-clearInterval(intervalo)
+clearInterval(timerInterval)
 
 document.getElementById("music").pause()
 
-document.querySelectorAll(".card").forEach(c=>{
-c.onclick=null
-})
+document.querySelectorAll(".card").forEach(c=>c.onclick=null)
 
-salvarRank(nome,pontos,tempoInicial-tempo)
+salvarRank(nome,pontos)
 
 setTimeout(()=>{
 
@@ -479,9 +430,7 @@ trocarTela("menu")
 
 }
 
-/* salvar rank */
-
-function salvarRank(nome,pontos,tempo){
+function salvarRank(nome,pontos){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
@@ -494,36 +443,15 @@ rank.push(jogador)
 
 }
 
-let jogo=jogador.jogos.find(j=>j.dificuldade===dificuldadeAtual)
-
-let data=new Date().toLocaleDateString()
-
-if(jogo){
-
-if(pontos>jogo.pontos){
-
-jogo.pontos=pontos
-jogo.tempo=tempo
-jogo.data=data
-
-}
-
-}else{
-
 jogador.jogos.push({
 dificuldade:dificuldadeAtual,
 pontos:pontos,
-tempo:tempo,
-data:data
+data:new Date().toLocaleDateString()
 })
-
-}
 
 localStorage.setItem("rank",JSON.stringify(rank))
 
 }
-
-/* carregar rank */
 
 function carregarRank(){
 
@@ -533,26 +461,24 @@ let tabela=document.getElementById("rankTable")
 
 rank.forEach(j=>{
 
-let linhaNome=document.createElement("tr")
-linhaNome.className="playerRow"
-
-linhaNome.innerHTML=`<td colspan="5">${j.nome}</td>`
-
-tabela.appendChild(linhaNome)
+let linha=document.createElement("tr")
+linha.className="playerRow"
+linha.innerHTML=`<td colspan="5">${j.nome}</td>`
+tabela.appendChild(linha)
 
 j.jogos.forEach(g=>{
 
-let linha=document.createElement("tr")
+let l=document.createElement("tr")
 
-linha.innerHTML=`
+l.innerHTML=`
 <td></td>
 <td>${g.dificuldade}</td>
 <td>${g.pontos}</td>
-<td>${g.tempo}s</td>
+<td>-</td>
 <td>${g.data}</td>
 `
 
-tabela.appendChild(linha)
+tabela.appendChild(l)
 
 })
 
