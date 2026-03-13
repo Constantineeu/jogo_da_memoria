@@ -10,14 +10,12 @@
 body{
 margin:0;
 font-family:Arial;
-color:white;
 text-align:center;
+color:white;
 background-size:cover;
 background-position:center;
 background-repeat:no-repeat;
 }
-
-/* telas */
 
 .screen{
 display:none;
@@ -27,7 +25,6 @@ align-items:center;
 flex-direction:column;
 background-size:cover;
 background-position:center;
-background-repeat:no-repeat;
 }
 
 .active{
@@ -37,11 +34,11 @@ display:flex;
 /* INTRO */
 
 #intro{
-background-image:url("img/tela_roxa.jpg");
+background:url("img/tela_roxa.jpg") center/cover no-repeat;
 }
 
 #trophy{
-width:180px;
+width:200px;
 animation:spin 3s linear;
 }
 
@@ -53,7 +50,7 @@ animation:spin 3s linear;
 /* MENU */
 
 #menu{
-background-image:url("img/fundo_menu.jpg");
+background:url("img/fundo_menu.jpg") center/cover no-repeat;
 }
 
 .menuButtons{
@@ -76,21 +73,20 @@ color:white;
 width:50px;
 height:50px;
 border-radius:50%;
-font-size:20px;
 }
 
 /* REGRAS */
 
 #rules{
-background:#90EE90;
+background:#9be79b;
 color:black;
 }
 
 .rulesBox{
-background:#006400;
-padding:25px;
-border-radius:12px;
+background:#0a5f0a;
 color:white;
+padding:30px;
+border-radius:10px;
 max-width:600px;
 }
 
@@ -98,7 +94,7 @@ max-width:600px;
 position:absolute;
 top:20px;
 left:20px;
-font-size:30px;
+font-size:28px;
 cursor:pointer;
 }
 
@@ -113,7 +109,7 @@ position:absolute;
 top:10px;
 right:20px;
 background:#00000088;
-padding:8px 14px;
+padding:8px 15px;
 border-radius:8px;
 }
 
@@ -122,7 +118,7 @@ position:absolute;
 top:10px;
 left:20px;
 background:#00000088;
-padding:8px 14px;
+padding:8px 15px;
 border-radius:8px;
 }
 
@@ -130,27 +126,27 @@ border-radius:8px;
 
 #board{
 display:grid;
-grid-template-columns:repeat(4,130px);
+grid-template-columns:repeat(4,140px);
 gap:12px;
 margin-top:80px;
 }
 
 .card{
-width:130px;
-height:160px;
+width:140px;
+height:170px;
 background:#1e90ff;
 border-radius:10px;
+cursor:pointer;
 display:flex;
 align-items:center;
 justify-content:center;
-cursor:pointer;
 }
 
 .card img{
 width:100%;
 height:100%;
-display:none;
 border-radius:10px;
+display:none;
 }
 
 .card.open img{
@@ -228,11 +224,8 @@ font-weight:bold;
 <h2>Regras</h2>
 
 <p>Encontre os pares de jogadores.</p>
-
 <p>Cada par vale <b>10 pontos</b>.</p>
-
 <p>O tempo depende da dificuldade.</p>
-
 <p>Mesmo se o tempo acabar sua pontuação será salva.</p>
 
 </div>
@@ -245,7 +238,7 @@ font-weight:bold;
 
 <div class="back" onclick="trocarTela('menu')">⬅</div>
 
-<h2>Dificuldade</h2>
+<h2>Escolha a dificuldade</h2>
 
 <button onclick="startGame(120,'Fácil')">Fácil</button> <button onclick="startGame(90,'Médio')">Médio</button> <button onclick="startGame(60,'Normal')">Normal</button> <button onclick="startGame(40,'Difícil')">Difícil</button> <button onclick="startGame(20,'Extremo')">Extremo</button>
 
@@ -270,12 +263,12 @@ font-weight:bold;
 
 setTimeout(()=>trocarTela("menu"),3500)
 
-/* variaveis */
+/* variáveis */
 
 let nome=""
 let tempo=0
 let tempoInicial=0
-let intervalo=null
+let intervalo
 let pontos=0
 let dificuldadeAtual=""
 let jogoAtivo=false
@@ -316,7 +309,7 @@ trocarTela("difficulty")
 
 }
 
-/* iniciar jogo */
+/* iniciar partida */
 
 function startGame(t,dif){
 
@@ -344,14 +337,19 @@ tempo--
 document.getElementById("timer").innerText="Tempo: "+tempo
 
 if(tempo<=0){
+
+tempo=0
+document.getElementById("timer").innerText="Tempo: 0"
+
 gameOver()
+
 }
 
 },1000)
 
 }
 
-/* tabuleiro */
+/* criar cartas */
 
 function criarTabuleiro(){
 
@@ -380,7 +378,7 @@ board.appendChild(card)
 
 }
 
-/* virar */
+/* virar carta */
 
 function virar(card){
 
@@ -427,7 +425,7 @@ trava=false
 
 }
 
-/* verificar */
+/* verificar vitória */
 
 function verificar(){
 
@@ -435,7 +433,7 @@ let abertas=document.querySelectorAll(".card.open")
 
 if(abertas.length===cartas.length){
 
-encerrarJogo(true)
+encerrar(true)
 
 }
 
@@ -445,13 +443,13 @@ encerrarJogo(true)
 
 function gameOver(){
 
-encerrarJogo(false)
+encerrar(false)
 
 }
 
-/* encerrar */
+/* encerrar jogo */
 
-function encerrarJogo(vitoria){
+function encerrar(vitoria){
 
 if(!jogoAtivo)return
 
@@ -460,6 +458,10 @@ jogoAtivo=false
 clearInterval(intervalo)
 
 document.getElementById("music").pause()
+
+document.querySelectorAll(".card").forEach(c=>{
+c.onclick=null
+})
 
 salvarRank(nome,pontos,tempoInicial-tempo)
 
@@ -471,9 +473,9 @@ alert("Você venceu! Pontos: "+pontos)
 alert("Game Over! Pontos: "+pontos)
 }
 
-location.reload()
+trocarTela("menu")
 
-},300)
+},500)
 
 }
 
