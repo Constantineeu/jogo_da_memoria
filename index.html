@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Memory of the Champions</title>
 
 <style>
@@ -101,6 +102,8 @@ button:active{transform:translateY(0)}
   background:#ff4444cc !important;
   animation:pulse 0.5s infinite;
   box-shadow:0 0 20px #ff4444;
+  padding:4px 10px;
+  border-radius:10px;
 }
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 
@@ -111,12 +114,11 @@ button:active{transform:translateY(0)}
   grid-template-columns:repeat(11,105px);
   grid-template-rows:repeat(2,125px);
   gap:8px;
-  justify-content:center;
-  max-width:1250px;
+  justify-content:center;max-width:1250px;
   padding:20px;
 }
 
-/* cartas otimizadas para 22 */
+/* cartas */
 .card{
   width:105px;height:125px;
   background:linear-gradient(145deg,#1e90ff,#0f5f9f);
@@ -139,7 +141,6 @@ button:active{transform:translateY(0)}
   transform:scale(1.08) rotateY(8deg);
   box-shadow:0 12px 30px rgba(30,144,255,0.6);
 }
-
 .card img{
   width:100%;
   height:100%;
@@ -148,7 +149,7 @@ button:active{transform:translateY(0)}
   object-fit:cover;
 }
 
-/* placeholder (aparece quando a carta abre, e some quando a imagem carrega) */
+/* placeholder (pra nunca parecer que não virou) */
 .placeholder{
   display:none;
   position:absolute;
@@ -161,7 +162,7 @@ button:active{transform:translateY(0)}
   text-transform:uppercase;
   color:rgba(255,255,255,0.95);
   text-shadow:0 4px 14px rgba(0,0,0,0.6);
-  background:linear-gradient(135deg, rgba(0,0,0,0.20), rgba(0,0,0,0.05));
+  background:linear-gradient(135deg, rgba(0,0,0,0.25), rgba(0,0,0,0.05));
 }
 
 .card.open img{display:block;transform:rotateY(180deg)}
@@ -169,10 +170,8 @@ button:active{transform:translateY(0)}
 .card.img-loaded.open .placeholder{display:none}
 
 .card.disabled{
-  cursor:not-allowed;
-  opacity:0.3;
-  pointer-events:none;
-  transform:scale(0.92);
+  cursor:not-allowed;opacity:0.3;
+  pointer-events:none;transform:scale(0.92);
 }
 
 /* GAME OVER */
@@ -237,12 +236,12 @@ th{
 <body>
 
 <audio id="music" loop preload="auto">
-  <source src="music/stadium.mp3">
+  <source src="music/stadium.mp3" />
 </audio>
 
 <!-- INTRO -->
 <div id="intro" class="screen active">
-  <img id="trophy" src="img/trofeu.png" alt="Troféu">
+  <img id="trophy" src="img/trofeu.png" alt="Troféu" />
 </div>
 
 <!-- MENU -->
@@ -314,25 +313,49 @@ th{
 </div>
 
 <script>
-setTimeout(()=>trocarTela("menu"),3000)
+/* =============================
+   INTRO -> MENU (3s)
+============================= */
+setTimeout(()=>trocarTela("menu"), 3000)
 
-let nome="", pontos=0, dificuldadeAtual="", paresEncontrados=0
-let tempoRestante=0, timerInterval=null, jogoAtivo=false
-let tempoInicio=0
+/* =============================
+   ESTADO DO JOGO
+============================= */
+let nome = ""
+let pontos = 0
+let dificuldadeAtual = ""
+let paresEncontrados = 0
 
-// ✅ nomes confirmados por você
+let jogoAtivo = false
+let tempoInicio = 0
+
+// Timer ultra confiável: baseado em timestamp (não depende de "decrementar")
+let fimTempoPerf = 0
+let rafId = null
+let ultimoSegundoMostrado = null
+
+// ✅ nomes confirmados
 const jogadores = [
   "messi","mbappe","neymar","modric","griezmann",
   "alvarez","vinijr","kane","debruyne","hakimi","giroud"
 ]
 
-let cartas=[], primeira=null, segunda=null, trava=false
+let cartas = []
+let primeira = null
+let segunda = null
+let trava = false
 
+/* =============================
+   TELAS
+============================= */
 function trocarTela(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"))
   document.getElementById(id).classList.add("active")
 }
 
+/* =============================
+   INÍCIO / DIFICULDADE
+============================= */
 function startGameScreen(){
   nome = prompt("👤 Digite seu nome:")
   if(!nome){ alert("❌ Nome obrigatório!"); return }
@@ -341,51 +364,70 @@ function startGameScreen(){
 }
 
 function startGame(segundos, dif){
+  // reset
   pontos = 0
   paresEncontrados = 0
   dificuldadeAtual = dif
   jogoAtivo = true
 
-  tempoRestante = Number(segundos)
-  tempoInicio = Date.now()
-
   primeira = null
   segunda = null
   trava = false
 
+  // timer por performance.now (monotônico e estável)
+  tempoInicio = Date.now()
+  fimTempoPerf = performance.now() + (Number(segundos) * 1000)
+
+  ultimoSegundoMostrado = null
   document.getElementById("points").innerText = "⭐ Pontos: 0"
-  document.getElementById("timer").innerText  = "⏰ Tempo: " + tempoRestante
-  document.getElementById("timer").classList.remove("critical")
+
+  const elTimer = document.getElementById("timer")
+  elTimer.classList.remove("critical")
+  elTimer.innerText = "⏰ Tempo: " + Number(segundos)
+
   document.getElementById("progress-bar").style.width = "0%"
 
   trocarTela("game")
   document.getElementById("music").play().catch(()=>{})
 
   criarTabuleiro()
-
-  if(timerInterval) clearInterval(timerInterval)
-  timerInterval = setInterval(timerTick, 1000)
+  iniciarTimerRAF()
 }
 
-function timerTick(){
-  if(!jogoAtivo) return
+/* =============================
+   TIMER (RAF)
+============================= */
+function iniciarTimerRAF(){
+  if(rafId) cancelAnimationFrame(rafId)
 
-  tempoRestante--
-  if(tempoRestante < 0) tempoRestante = 0
+  const tick = () => {
+    if(!jogoAtivo) return
 
-  document.getElementById("timer").innerText = "⏰ Tempo: " + tempoRestante
+    const msRestante = fimTempoPerf - performance.now()
+    const segRestante = Math.max(0, Math.ceil(msRestante / 1000))
 
-  if(tempoRestante <= 10){
-    document.getElementById("timer").classList.add("critical")
+    if(segRestante !== ultimoSegundoMostrado){
+      ultimoSegundoMostrado = segRestante
+
+      const elTimer = document.getElementById("timer")
+      elTimer.innerText = "⏰ Tempo: " + segRestante
+      if(segRestante <= 10) elTimer.classList.add("critical")
+
+      if(segRestante === 0){
+        encerrar(false)
+        return
+      }
+    }
+
+    rafId = requestAnimationFrame(tick)
   }
 
-  if(tempoRestante === 0){
-    clearInterval(timerInterval)
-    timerInterval = null
-    encerrar(false) // ✅ GAME OVER garantido
-  }
+  rafId = requestAnimationFrame(tick)
 }
 
+/* =============================
+   TABULEIRO
+============================= */
 function criarTabuleiro(){
   cartas = [...jogadores, ...jogadores] // 22
   cartas.sort(()=>Math.random()-0.5)
@@ -403,15 +445,12 @@ function criarTabuleiro(){
     img.src = "img/" + j + ".jpg"
     img.alt = j
 
-    // ✅ assim você SEMPRE vê que "virou", mesmo carregando
     const ph = document.createElement("div")
     ph.className = "placeholder"
     ph.textContent = j
 
     img.addEventListener("load", () => card.classList.add("img-loaded"))
     img.addEventListener("error", () => {
-      // Se der erro de arquivo, pelo menos não fica "parecendo que não virou"
-      card.classList.remove("img-loaded")
       ph.textContent = "imagem não encontrada"
     })
 
@@ -423,6 +462,9 @@ function criarTabuleiro(){
   })
 }
 
+/* =============================
+   MECÂNICA DAS CARTAS
+============================= */
 function virar(card){
   if(!jogoAtivo) return
   if(trava) return
@@ -447,6 +489,7 @@ function virar(card){
     document.getElementById("points").innerText = "⭐ Pontos: " + pontos
     document.getElementById("progress-bar").style.width = (paresEncontrados/11*100) + "%"
 
+    // trava par
     primeira.classList.add("disabled")
     segunda.classList.add("disabled")
 
@@ -454,7 +497,7 @@ function virar(card){
     segunda = null
     trava = false
 
-    setTimeout(verificar, 150)
+    setTimeout(verificarVitoria, 150)
   } else {
     setTimeout(()=>{
       if(!jogoAtivo) return
@@ -467,15 +510,21 @@ function virar(card){
   }
 }
 
-function verificar(){
+function verificarVitoria(){
   if(paresEncontrados === 11) encerrar(true)
 }
 
+/* =============================
+   ENCERRAMENTO / GAME OVER
+============================= */
 function encerrar(vitoria){
   if(!jogoAtivo) return
-
   jogoAtivo = false
-  if(timerInterval){ clearInterval(timerInterval); timerInterval = null }
+
+  if(rafId){
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
 
   const music = document.getElementById("music")
   music.pause()
@@ -486,14 +535,21 @@ function encerrar(vitoria){
     c.onclick = null
   })
 
-  const tempoUsado = Math.floor((Date.now()-tempoInicio)/1000)
-  salvarRank(nome, pontos, tempoUsado)
+  const tempoUsado = Math.floor((Date.now() - tempoInicio) / 1000)
+
+  // ✅ mesmo se der algum erro no localStorage, o game over aparece
+  try{
+    salvarRank(nome, pontos, tempoUsado)
+  }catch(e){
+    console.error("Erro ao salvar ranking:", e)
+  }
+
   mostrarGameOver(vitoria, pontos, tempoUsado)
 }
 
 function mostrarGameOver(vitoria, pontosFinal, tempoUsado){
   const go = document.getElementById("gameover")
-  go.className = "screen " + (vitoria ? "victory" : "defeat") + " active"
+  go.className = "screen active " + (vitoria ? "victory" : "defeat")
 
   document.getElementById("gameover-title").innerText =
     vitoria ? "🎉 VITÓRIA TOTAL! 🎉" : "💀 GAME OVER 💀"
@@ -507,33 +563,36 @@ function mostrarGameOver(vitoria, pontosFinal, tempoUsado){
 }
 
 function jogarNovamente(){
-  // volta pra dificuldade mantendo o mesmo nome (se já digitou)
+  // mantém o nome e volta pra seleção de dificuldade
   if(nome){
     document.getElementById("player").innerText = "👋 " + nome
     trocarTela("difficulty")
-  } else {
+  }else{
     startGameScreen()
   }
 }
 
+/* =============================
+   RANKING (localStorage)
+============================= */
 function salvarRank(nome, pontos, tempo){
   let rank = JSON.parse(localStorage.getItem("rank")) || []
-  let jogador = rank.find(j=>j.nome===nome)
+  let jogador = rank.find(j => j.nome === nome)
 
   if(!jogador){
-    jogador = {nome:nome, jogos:[]}
+    jogador = { nome:nome, jogos:[] }
     rank.push(jogador)
   }
 
-  let jogoExistente = jogador.jogos.find(g=>g.dificuldade===dificuldadeAtual)
+  let jogoExistente = jogador.jogos.find(g => g.dificuldade === dificuldadeAtual)
   if(!jogoExistente){
     jogador.jogos.push({
-      dificuldade:dificuldadeAtual,
+      dificuldade: dificuldadeAtual,
       pontos,
       tempo,
-      data:new Date().toLocaleDateString()
+      data: new Date().toLocaleDateString()
     })
-  } else if(pontos > jogoExistente.pontos){
+  }else if(pontos > jogoExistente.pontos){
     jogoExistente.pontos = pontos
     jogoExistente.tempo = tempo
     jogoExistente.data = new Date().toLocaleDateString()
@@ -546,8 +605,16 @@ function salvarRank(nome, pontos, tempo){
 function carregarRank(){
   let rank = JSON.parse(localStorage.getItem("rank")) || []
   let tabela = document.getElementById("rankTable")
-  tabela.innerHTML =
-    `<tr><th>Jogador</th><th>Dif.</th><th>⭐ Pontos</th><th>⏰ Tempo</th><th>📅 Data</th></tr>`
+
+  tabela.innerHTML = `
+    <tr>
+      <th>Jogador</th>
+      <th>Dif.</th>
+      <th>⭐ Pontos</th>
+      <th>⏰ Tempo</th>
+      <th>📅 Data</th>
+    </tr>
+  `
 
   rank.forEach(j=>{
     let linha = document.createElement("tr")
@@ -564,6 +631,18 @@ function carregarRank(){
 }
 
 carregarRank()
+
+/* =============================
+   EXTRA: se o usuário troca de aba e volta,
+   o timer continua correto (timestamp).
+============================= */
+document.addEventListener("visibilitychange", () => {
+  if(!document.hidden && jogoAtivo){
+    // força uma atualização imediata ao voltar pra aba
+    ultimoSegundoMostrado = null
+  }
+})
 </script>
+
 </body>
 </html>
