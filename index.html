@@ -425,8 +425,6 @@ let tempoUsado = Math.floor((Date.now() - tempoInicial) / 1000)
 
 salvarRank(nome,pontos,tempoUsado)
 
-setTimeout(()=>{
-
 if(vitoria){
 alert("Você venceu! Pontos: " + pontos)
 }else{
@@ -435,9 +433,8 @@ alert("Game Over! Pontos: " + pontos)
 
 trocarTela("menu")
 
-},200)
-
 }
+
 function salvarRank(nome,pontos,tempo){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
