@@ -14,8 +14,6 @@ color:white;
 background:black;
 }
 
-/* telas */
-
 .screen{
 display:none;
 height:100vh;
@@ -31,7 +29,7 @@ display:flex;
 /* intro */
 
 #intro{
-background:url("img/tela_roxa.jpg") center/cover no-repeat;
+background:#3a0066;
 }
 
 #trophy{
@@ -40,14 +38,14 @@ animation:spin 3s linear;
 }
 
 @keyframes spin{
-0%{transform:rotateY(0deg)}
+0%{transform:rotateY(0)}
 100%{transform:rotateY(360deg)}
 }
 
 /* menu */
 
 #menu{
-background:url("img/fundo_menu.jpg") center/cover no-repeat;
+background:#002244;
 }
 
 button{
@@ -61,105 +59,47 @@ background:#1e90ff;
 color:white;
 }
 
-.circleBtn{
-width:50px;
-height:50px;
-border-radius:50%;
-}
-
-.menuButtons{
-display:flex;
-gap:10px;
-}
-
-/* regras */
-
-#rules{
-background:#9be79b;
-color:black;
-}
-
-.rulesBox{
-background:#0a5f0a;
-color:white;
-padding:25px;
-border-radius:10px;
-max-width:600px;
-}
-
-.back{
-position:absolute;
-top:20px;
-left:20px;
-font-size:28px;
-cursor:pointer;
-}
-
 /* jogo */
 
 #game{
-position:relative;
 background:#0b1020;
 }
 
 #hud{
-position:absolute;
-top:10px;
-left:0;
-right:0;
 display:flex;
 justify-content:space-between;
-padding:0 20px;
+width:600px;
+margin-bottom:20px;
 font-weight:bold;
 }
 
 #board{
-margin-top:80px;
 display:grid;
-grid-template-columns:repeat(6,140px);
+grid-template-columns:repeat(6,120px);
 gap:10px;
-justify-content:center;
 }
 
 .card{
-width:140px;
-height:170px;
+width:120px;
+height:150px;
 background:#1e90ff;
 border-radius:10px;
 cursor:pointer;
 display:flex;
 align-items:center;
 justify-content:center;
+font-size:40px;
 }
 
-.card img{
-width:100%;
-height:100%;
-border-radius:10px;
-display:none;
-}
-
-.card.open img{
-display:block;
-}
-
-/* ranking */
-
-table{
+.card.open{
 background:white;
 color:black;
-border-collapse:collapse;
-margin-top:20px;
 }
 
-td,th{
-border:1px solid black;
-padding:6px 10px;
-}
+/* game over */
 
-.playerRow{
-background:#ddd;
-font-weight:bold;
+#gameover{
+background:#111;
 }
 
 </style>
@@ -167,73 +107,31 @@ font-weight:bold;
 
 <body>
 
-<audio id="music" loop>
-<source src="music/stadium.mp3">
-</audio>
-
 <!-- INTRO -->
 
 <div id="intro" class="screen active">
-<img id="trophy" src="img/trofeu.png">
+<h1>Memory of the Champions</h1>
+<img id="trophy" src="trofeu.png">
 </div>
 
 <!-- MENU -->
 
 <div id="menu" class="screen">
 
-<h1>Memory of the Champions</h1>
+<h2>Menu</h2>
 
-<div class="menuButtons">
 <button onclick="start()">Jogar</button>
-<button class="circleBtn" onclick="trocarTela('rules')">?</button>
-</div>
 
-<h2>Ranking</h2>
+<h3>Ranking</h3>
 
-<table id="rankTable">
+<table id="rankTable" border="1">
 <tr>
 <th>Jogador</th>
 <th>Dificuldade</th>
 <th>Pontos</th>
 <th>Tempo</th>
-<th>Data</th>
 </tr>
 </table>
-
-</div>
-
-<!-- REGRAS -->
-
-<div id="rules" class="screen">
-
-<div class="back" onclick="trocarTela('menu')">⬅</div>
-
-<div class="rulesBox">
-
-<h2>Regras</h2>
-
-<p>Encontre os pares de jogadores.</p>
-<p>Cada par vale <b>10 pontos</b>.</p>
-<p>O tempo depende da dificuldade.</p>
-<p>Se o tempo acabar aparece <b>Game Over</b>.</p>
-
-</div>
-
-</div>
-
-<!-- DIFICULDADE -->
-
-<div id="difficulty" class="screen">
-
-<div class="back" onclick="trocarTela('menu')">⬅</div>
-
-<h2>Dificuldade</h2>
-
-<button onclick="startGame(120,'Fácil')">Fácil</button>
-<button onclick="startGame(90,'Médio')">Médio</button>
-<button onclick="startGame(60,'Normal')">Normal</button>
-<button onclick="startGame(40,'Difícil')">Difícil</button>
-<button onclick="startGame(20,'Extremo')">Extremo</button>
 
 </div>
 
@@ -244,11 +142,21 @@ font-weight:bold;
 <h2 id="player"></h2>
 
 <div id="hud">
-<div id="points">Pontos: 0</div>
-<div id="timer">Tempo: 0</div>
+<div id="points">Pontos:0</div>
+<div id="timer">Tempo:0</div>
 </div>
 
 <div id="board"></div>
+
+</div>
+
+<!-- GAME OVER -->
+
+<div id="gameover" class="screen">
+
+<h1 id="resultText"></h1>
+
+<button onclick="trocarTela('menu')">Voltar ao Menu</button>
 
 </div>
 
@@ -262,28 +170,32 @@ setTimeout(()=>trocarTela("menu"),3000)
 
 let nome=""
 let pontos=0
-let dificuldadeAtual=""
+let dificuldadeAtual="Normal"
 
-let tempoRestante=0
-let timerInterval=null
+let tempoRestante=60
+
+let timerInterval
 
 let jogoAtivo=false
 
-const jogadores=[
-"messi","mbappe","neymar","modric","griezmann",
-"alvarez","vinijr","kane","debruyne","hakimi","giroud"
-]
-
-let cartas=[]
 let primeira=null
 let segunda=null
 let trava=false
 
+const jogadores=[
+"⚽","🥅","🏆","🥇","🎯","👟","🧤","📣","🏟️","🎽","🟡"
+]
+
+let cartas=[]
+
 /* trocar tela */
 
 function trocarTela(id){
+
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
+
 document.getElementById(id).classList.add("active")
+
 }
 
 /* iniciar */
@@ -292,39 +204,33 @@ function start(){
 
 nome=prompt("Digite seu nome")
 
-if(!nome) return
+if(!nome)return
 
 document.getElementById("player").innerText="Jogador: "+nome
 
-trocarTela("difficulty")
+startGame()
 
 }
 
 /* iniciar jogo */
 
-function startGame(segundos,dif){
+function startGame(){
 
 pontos=0
-dificuldadeAtual=dif
 
-tempoRestante=segundos
+tempoRestante=60
 
 jogoAtivo=true
 
-primeira=null
-segunda=null
-trava=false
+document.getElementById("points").innerText="Pontos:0"
 
-document.getElementById("points").innerText="Pontos: 0"
-document.getElementById("timer").innerText="Tempo: "+tempoRestante
+document.getElementById("timer").innerText="Tempo:"+tempoRestante
 
 trocarTela("game")
 
-document.getElementById("music").play()
-
 criarTabuleiro()
 
-if(timerInterval) clearInterval(timerInterval)
+if(timerInterval)clearInterval(timerInterval)
 
 timerInterval=setInterval(timerTick,1000)
 
@@ -334,15 +240,13 @@ timerInterval=setInterval(timerTick,1000)
 
 function timerTick(){
 
-if(!jogoAtivo) return
+if(!jogoAtivo)return
 
 tempoRestante--
 
-document.getElementById("timer").innerText="Tempo: "+tempoRestante
+document.getElementById("timer").innerText="Tempo:"+tempoRestante
 
 if(tempoRestante<=0){
-
-clearInterval(timerInterval)
 
 encerrar(false)
 
@@ -362,16 +266,15 @@ const board=document.getElementById("board")
 
 board.innerHTML=""
 
-cartas.forEach(j=>{
+cartas.forEach(simbolo=>{
 
 let card=document.createElement("div")
+
 card.className="card"
-card.dataset.valor=j
 
-let img=document.createElement("img")
-img.src="img/"+j+".jpg"
+card.dataset.valor=simbolo
 
-card.appendChild(img)
+card.innerText="?"
 
 card.onclick=()=>virar(card)
 
@@ -381,29 +284,34 @@ board.appendChild(card)
 
 }
 
-/* virar carta */
+/* virar */
 
 function virar(card){
 
-if(!jogoAtivo) return
-if(trava) return
-if(card.classList.contains("open")) return
+if(!jogoAtivo)return
+if(trava)return
+if(card.classList.contains("open"))return
 
 card.classList.add("open")
 
+card.innerText=card.dataset.valor
+
 if(!primeira){
+
 primeira=card
 return
+
 }
 
 segunda=card
+
 trava=true
 
 if(primeira.dataset.valor===segunda.dataset.valor){
 
 pontos+=10
 
-document.getElementById("points").innerText="Pontos: "+pontos
+document.getElementById("points").innerText="Pontos:"+pontos
 
 primeira=null
 segunda=null
@@ -417,6 +325,9 @@ setTimeout(()=>{
 
 primeira.classList.remove("open")
 segunda.classList.remove("open")
+
+primeira.innerText="?"
+segunda.innerText="?"
 
 primeira=null
 segunda=null
@@ -446,71 +357,40 @@ encerrar(true)
 
 function encerrar(vitoria){
 
-if(!jogoAtivo) return
+if(!jogoAtivo)return
 
 jogoAtivo=false
 
 clearInterval(timerInterval)
 
-const music=document.getElementById("music")
-music.pause()
-music.currentTime=0
-
-let tempoUsado=tempoRestante
-
-salvarRank(nome,pontos,tempoUsado)
-
-setTimeout(()=>{
+salvarRank(nome,pontos,tempoRestante)
 
 if(vitoria){
-alert("Você venceu! Pontos: "+pontos)
+
+document.getElementById("resultText").innerText="VOCÊ VENCEU! Pontos:"+pontos
+
 }else{
-alert("Game Over! Pontos: "+pontos)
-}
 
-trocarTela("menu")
-
-},200)
+document.getElementById("resultText").innerText="GAME OVER! Pontos:"+pontos
 
 }
 
-/* salvar rank */
+trocarTela("gameover")
+
+}
+
+/* ranking */
 
 function salvarRank(nome,pontos,tempo){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
-let jogador=rank.find(j=>j.nome===nome)
-
-if(!jogador){
-
-jogador={nome:nome,jogos:[]}
-rank.push(jogador)
-
-}
-
-let jogoExistente=jogador.jogos.find(g=>g.dificuldade===dificuldadeAtual)
-
-if(!jogoExistente){
-
-jogador.jogos.push({
+rank.push({
+nome:nome,
 dificuldade:dificuldadeAtual,
 pontos:pontos,
-tempo:tempo,
-data:new Date().toLocaleDateString()
+tempo:tempo
 })
-
-}else{
-
-if(pontos>jogoExistente.pontos){
-
-jogoExistente.pontos=pontos
-jogoExistente.tempo=tempo
-jogoExistente.data=new Date().toLocaleDateString()
-
-}
-
-}
 
 localStorage.setItem("rank",JSON.stringify(rank))
 
@@ -518,44 +398,21 @@ carregarRank()
 
 }
 
-/* carregar ranking */
-
 function carregarRank(){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
 let tabela=document.getElementById("rankTable")
 
-tabela.innerHTML=`<tr>
-<th>Jogador</th>
-<th>Dificuldade</th>
-<th>Pontos</th>
-<th>Tempo</th>
-<th>Data</th>
-</tr>`
+tabela.innerHTML="<tr><th>Jogador</th><th>Dificuldade</th><th>Pontos</th><th>Tempo</th></tr>"
 
 rank.forEach(j=>{
 
-let linha=document.createElement("tr")
-linha.className="playerRow"
-linha.innerHTML=`<td colspan="5">${j.nome}</td>`
-tabela.appendChild(linha)
-
-j.jogos.forEach(g=>{
-
 let l=document.createElement("tr")
 
-l.innerHTML=`
-<td></td>
-<td>${g.dificuldade}</td>
-<td>${g.pontos}</td>
-<td>${g.tempo}s</td>
-<td>${g.data}</td>
-`
+l.innerHTML=`<td>${j.nome}</td><td>${j.dificuldade}</td><td>${j.pontos}</td><td>${j.tempo}</td>`
 
 tabela.appendChild(l)
-
-})
 
 })
 
