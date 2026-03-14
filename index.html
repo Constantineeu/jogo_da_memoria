@@ -95,10 +95,11 @@ font-size:28px;
 cursor:pointer;
 }
 
-/* hud */
+/* jogo */
 
 #game{
 position:relative;
+background:#0b1020;
 }
 
 #hud{
@@ -109,6 +110,7 @@ right:0;
 display:flex;
 justify-content:space-between;
 padding:0 20px;
+font-weight:bold;
 }
 
 #board{
@@ -261,12 +263,11 @@ setTimeout(()=>trocarTela("menu"),3000)
 let nome=""
 let pontos=0
 let dificuldadeAtual=""
-let tempoInicial=0
-let tempoFinal=0
-let timerInterval
-let jogoAtivo=false
 
-/* 11 jogadores = 22 cartas */
+let tempoRestante=0
+let timerInterval=null
+
+let jogoAtivo=false
 
 const jogadores=[
 "messi","mbappe","neymar","modric","griezmann",
@@ -277,6 +278,8 @@ let cartas=[]
 let primeira=null
 let segunda=null
 let trava=false
+
+/* trocar tela */
 
 function trocarTela(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
@@ -303,16 +306,17 @@ function startGame(segundos,dif){
 
 pontos=0
 dificuldadeAtual=dif
+
+tempoRestante=segundos
+
 jogoAtivo=true
 
 primeira=null
 segunda=null
 trava=false
 
-tempoInicial=Date.now()
-tempoFinal=Date.now()+segundos*1000
-
 document.getElementById("points").innerText="Pontos: 0"
+document.getElementById("timer").innerText="Tempo: "+tempoRestante
 
 trocarTela("game")
 
@@ -320,29 +324,33 @@ document.getElementById("music").play()
 
 criarTabuleiro()
 
-timerInterval=setInterval(atualizarTempo,500)
+if(timerInterval) clearInterval(timerInterval)
+
+timerInterval=setInterval(timerTick,1000)
 
 }
 
 /* timer */
 
-function atualizarTempo(){
+function timerTick(){
 
 if(!jogoAtivo) return
 
-let restante=Math.floor((tempoFinal-Date.now())/1000)
+tempoRestante--
 
-if(restante<0) restante=0
+document.getElementById("timer").innerText="Tempo: "+tempoRestante
 
-document.getElementById("timer").innerText="Tempo: "+restante
+if(tempoRestante<=0){
 
-if(restante<=0){
+clearInterval(timerInterval)
+
 encerrar(false)
-}
 
 }
 
-/* tabuleiro */
+}
+
+/* criar cartas */
 
 function criarTabuleiro(){
 
@@ -394,6 +402,7 @@ trava=true
 if(primeira.dataset.valor===segunda.dataset.valor){
 
 pontos+=10
+
 document.getElementById("points").innerText="Pontos: "+pontos
 
 primeira=null
@@ -433,7 +442,7 @@ encerrar(true)
 
 }
 
-/* finalizar jogo */
+/* encerrar */
 
 function encerrar(vitoria){
 
@@ -447,7 +456,7 @@ const music=document.getElementById("music")
 music.pause()
 music.currentTime=0
 
-let tempoUsado=Math.floor((Date.now()-tempoInicial)/1000)
+let tempoUsado=tempoRestante
 
 salvarRank(nome,pontos,tempoUsado)
 
@@ -465,7 +474,7 @@ trocarTela("menu")
 
 }
 
-/* salvar ranking */
+/* salvar rank */
 
 function salvarRank(nome,pontos,tempo){
 
