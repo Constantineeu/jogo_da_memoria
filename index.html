@@ -246,12 +246,12 @@ th{
 
 <!-- MENU -->
 <div id="menu" class="screen">
-  <h1>⚽ Memory of the Champions</h1>
+  <h1>Memory of the Champions</h1>
   <div class="menuButtons">
-    <button onclick="startGameScreen()">🎮 Jogar</button>
+    <button onclick="startGameScreen()">Jogar</button>
     <button class="circleBtn" onclick="trocarTela('rules')">?</button>
   </div>
-  <h2>🏆 Ranking - 11 Pares Exatos</h2>
+  <h2>🏆 Ranking</h2>
   <table id="rankTable"></table>
 </div>
 
@@ -259,11 +259,11 @@ th{
 <div id="rules" class="screen">
   <div class="back" onclick="trocarTela('menu')">⬅</div>
   <div class="rulesBox">
-    <h2>📋 Regras do Jogo</h2>
-    <p><b>🎯 11 jogadores = 22 cartas = 11 pares</b></p>
-    <p>⭐ Cada par correto = <b>+10 pontos</b></p>
-    <p>⏰ Grid: <b>2x11</b> • Escolha sua dificuldade</p>
-    <p>💾 <b>Melhor pontuação salva</b> por dificuldade</p>
+    <h2>Regras do Jogo</h2>
+    <p><b>Encontre os pares de jogadores.</b></p>
+    <p>Cada par vale <b>10 pontos</b></p>
+    <p>O tempo depende da dificuldade</p>
+    <p>Mesmo se o tempo acabar sua pontuação será salva</p>
     <hr style="margin:25px 0">
     <div style="font-size:1.2em">
       <b>Jogadores:</b><br>
@@ -277,19 +277,19 @@ th{
 <div id="difficulty" class="screen">
   <div class="back" onclick="trocarTela('menu')">⬅</div>
   <h2>🎮 Nível de Dificuldade</h2>
-  <button onclick="startGame(180,'Fácil')">🌱 Fácil - 3:00 min</button>
-  <button onclick="startGame(120,'Médio')">🌿 Médio - 2:00 min</button>
-  <button onclick="startGame(90,'Normal')">⚡ Normal - 1:30 min</button>
-  <button onclick="startGame(60,'Difícil')">🔥 Difícil - 1:00 min</button>
-  <button onclick="startGame(40,'Extremo')">💀 Extremo - 40 seg</button>
+  <button onclick="startGame(120,'Fácil')"> Fácil - 2:00 min</button>
+  <button onclick="startGame(90,'Médio')"> Médio - 1:30 min</button>
+  <button onclick="startGame(60,'Normal')"> Normal - 1:00 min</button>
+  <button onclick="startGame(40,'Difícil')"> Difícil - 40 seg</button>
+  <button onclick="startGame(20,'Extremo')"> Extremo - 20 seg</button>
 </div>
 
 <!-- GAME -->
 <div id="game" class="screen">
   <h2 id="player"></h2>
   <div id="hud">
-    <div id="points">⭐ Pontos: 0</div>
-    <div id="timer">⏰ Tempo: 0</div>
+    <div id="points"> Pontos: 0</div>
+    <div id="timer"> Tempo: 0</div>
   </div>
   <div id="progress">
     <div id="progress-bar"></div>
@@ -610,9 +610,9 @@ function carregarRank(){
     <tr>
       <th>Jogador</th>
       <th>Dif.</th>
-      <th>⭐ Pontos</th>
-      <th>⏰ Tempo</th>
-      <th>📅 Data</th>
+      <th>Pontos</th>
+      <th>Tempo</th>
+      <th>Data</th>
     </tr>
   `
 
