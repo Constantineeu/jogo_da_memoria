@@ -320,14 +320,8 @@ if(restante<0) restante=0
 
 document.getElementById("timer").innerText="Tempo: "+restante
 
-if(restante<=0){
-
-clearInterval(timerInterval)
-timerInterval=null
-
+if(restante === 0){
 encerrar(false)
-
-return
 }
 
 }
@@ -417,32 +411,26 @@ encerrar(true)
 
 function encerrar(vitoria){
 
-jogoAtivo=false
+if(!jogoAtivo) return
 
-if(timerInterval){
+jogoAtivo = false
+
 clearInterval(timerInterval)
-timerInterval=null
-}
 
-const music=document.getElementById("music")
+const music = document.getElementById("music")
 music.pause()
-music.currentTime=0
+music.currentTime = 0
 
-document.querySelectorAll(".card").forEach(c=>{
-c.classList.add("disabled")
-c.onclick=null
-})
-
-let tempoUsado=Math.floor((Date.now()-tempoInicial)/1000)
+let tempoUsado = Math.floor((Date.now() - tempoInicial) / 1000)
 
 salvarRank(nome,pontos,tempoUsado)
 
 setTimeout(()=>{
 
 if(vitoria){
-alert("Você venceu! Pontos: "+pontos)
+alert("Você venceu! Pontos: " + pontos)
 }else{
-alert("Game Over! Pontos: "+pontos)
+alert("Game Over! Pontos: " + pontos)
 }
 
 trocarTela("menu")
@@ -450,7 +438,6 @@ trocarTela("menu")
 },200)
 
 }
-
 function salvarRank(nome,pontos,tempo){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
