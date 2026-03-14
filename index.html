@@ -437,23 +437,37 @@ trocarTela("menu")
 
 function salvarRank(nome,pontos,tempo){
 
-let rank=JSON.parse(localStorage.getItem("rank"))||[]
+let rank = JSON.parse(localStorage.getItem("rank")) || []
 
-let jogador=rank.find(j=>j.nome===nome)
+let jogador = rank.find(j => j.nome === nome)
 
 if(!jogador){
-
-jogador={nome:nome,jogos:[]}
-rank.push(jogador)
-
+    jogador = {nome:nome, jogos:[]}
+    rank.push(jogador)
 }
 
-jogador.jogos.push({
-dificuldade:dificuldadeAtual,
-pontos:pontos,
-tempo:tempo,
-data:new Date().toLocaleDateString()
-})
+let jogoExistente = jogador.jogos.find(g => g.dificuldade === dificuldadeAtual)
+
+if(!jogoExistente){
+
+    jogador.jogos.push({
+        dificuldade:dificuldadeAtual,
+        pontos:pontos,
+        tempo:tempo,
+        data:new Date().toLocaleDateString()
+    })
+
+}else{
+
+    if(pontos > jogoExistente.pontos){
+
+        jogoExistente.pontos = pontos
+        jogoExistente.tempo = tempo
+        jogoExistente.data = new Date().toLocaleDateString()
+
+    }
+
+}
 
 localStorage.setItem("rank",JSON.stringify(rank))
 
