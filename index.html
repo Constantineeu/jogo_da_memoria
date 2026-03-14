@@ -153,6 +153,7 @@ display:block;
 .card.disabled{
 cursor:not-allowed;
 opacity:0.5;
+pointer-events:none; /* ✅ BLOQUEIA CLIQUE TOTAL */
 }
 
 /* RANK */
@@ -316,8 +317,9 @@ if(restante<0) restante=0
 document.getElementById("timer").innerText="Tempo: "+restante
 
 if(restante<=0){
-    jogoAtivo=false  // ✅ CORRIGIDO: TRAVA IMEDIATAMENTE
-    encerrar(false)
+    jogoAtivo=false
+    encerrar(false)  // ✅ CHAMA UMA VEZ SÓ
+    return  // ✅ EVITA LOOP
 }
 
 }
@@ -351,10 +353,10 @@ board.appendChild(card)
 
 function virar(card){
 
-if(!jogoAtivo)return  // ✅ JÁ TRAVA AQUI
+if(!jogoAtivo)return
 if(trava)return
 if(card.classList.contains("open"))return
-if(card.classList.contains("disabled"))return  // ✅ EXTRA: PREVINE CLIQUE EM CARTAS DESATIVADAS
+if(card.classList.contains("disabled"))return
 
 card.classList.add("open")
 
@@ -408,31 +410,34 @@ encerrar(true)
 
 function encerrar(vitoria){
 
-if(!jogoAtivo)return
-
+// ✅ PRIMEIRO: PARA TUDO IMEDIATAMENTE
 jogoAtivo=false
-clearInterval(timerInterval)
-document.getElementById("music").pause()
+if(timerInterval){
+    clearInterval(timerInterval)
+    timerInterval=null
+}
+const music = document.getElementById("music")
+music.pause()
+music.currentTime=0  // ✅ RESETA A MÚSICA
 
-// ✅ DESATIVA TODAS AS CARTAS VISUALMENTE
+// ✅ DESATIVA TODAS AS CARTAS
 document.querySelectorAll(".card").forEach(c=>{
     c.classList.add("disabled")
     c.onclick=null
 })
 
+// ✅ SALVA RANK
 salvarRank(nome,pontos)
 
+// ✅ ALERT E MENU
 setTimeout(()=>{
-
-if(vitoria){
-alert("Você venceu! Pontos: "+pontos)
-}else{
-alert("Game Over! Pontos: "+pontos)
-}
-
-trocarTela("menu")
-
-},500)
+    if(vitoria){
+        alert("Você venceu! Pontos: "+pontos)
+    }else{
+        alert("Game Over! Pontos: "+pontos)
+    }
+    trocarTela("menu")
+},100)  // ← REDUZIDO PARA 100ms
 
 }
 
