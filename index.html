@@ -5,7 +5,6 @@
 <title>Memory of the Champions</title>
 
 <style>
-
 body{
 margin:0;
 font-family:Arial;
@@ -15,7 +14,6 @@ background:black;
 }
 
 /* telas */
-
 .screen{
 display:none;
 height:100vh;
@@ -23,33 +21,25 @@ justify-content:center;
 align-items:center;
 flex-direction:column;
 }
+.active{display:flex}
 
-.active{
-display:flex;
-}
-
-/* INTRO */
-
+/* intro */
 #intro{
 background:url("img/tela_roxa.jpg") center/cover no-repeat;
 }
-
 #trophy{
 width:200px;
-animation:giro 3s linear;
+animation:spin 3s linear;
 }
-
-@keyframes giro{
-0%{transform:rotateY(0)}
+@keyframes spin{
+0%{transform:rotateY(0deg)}
 100%{transform:rotateY(360deg)}
 }
 
-/* MENU */
-
+/* menu */
 #menu{
 background:url("img/fundo_menu.jpg") center/cover no-repeat;
 }
-
 button{
 padding:12px 20px;
 font-size:18px;
@@ -59,392 +49,428 @@ cursor:pointer;
 margin:5px;
 background:#1e90ff;
 color:white;
+transition:all 0.3s;
+box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+button:hover{background:#4169e1;transform:translateY(-2px)}
+button:active{transform:translateY(0)}
+.circleBtn{
+width:50px;height:50px;
+border-radius:50%;
+}
+.menuButtons{display:flex;gap:10px}
+
+/* regras */
+#rules{
+background:#9be79b;color:black;
+}
+.rulesBox{
+background:#0a5f0a;color:white;
+padding:25px;border-radius:15px;
+max-width:600px;box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+.back{
+position:absolute;top:20px;left:20px;
+font-size:28px;cursor:pointer;padding:10px;
 }
 
-/* GAME */
-
-#game{
-background:#0b1020;
-}
-
+/* jogo */
+#game{position:relative;background:#0b1020}
 #hud{
-display:flex;
-justify-content:space-between;
-width:650px;
-margin-bottom:20px;
-font-weight:bold;
+position:absolute;top:10px;left:0;right:0;
+display:flex;justify-content:space-between;
+padding:0 20px;font-weight:bold;font-size:20px;
+z-index:10;
 }
+#progress{
+position:absolute;top:60px;left:50%;
+transform:translateX(-50%);
+width:300px;height:12px;
+background:rgba(255,255,255,0.2);
+border-radius:6px;overflow:hidden;
+}
+#progress-bar{
+height:100%;background:linear-gradient(90deg,#00ff88,#4ade80);
+width:0%;transition:width 0.4s ease;border-radius:6px;
+box-shadow:0 0 20px #00ff88;
+}
+#timer.critical{
+background:#ff4444cc !important;
+animation:pulse 0.5s infinite;
+box-shadow:0 0 20px #ff4444;
+}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 
+/* board - 22 CARTAS: 2 LINHAS x 11 COLUNAS */
 #board{
+margin-top:120px;
 display:grid;
-grid-template-columns:repeat(6,120px);
-gap:10px;
+grid-template-columns:repeat(11,105px);
+grid-template-rows:repeat(2,125px);
+gap:8px;
+justify-content:center;max-width:1250px;
+padding:20px;
 }
 
+/* cartas otimizadas para 22 */
 .card{
-width:120px;
-height:150px;
-background:#1e90ff;
+width:105px;height:125px;
+background:linear-gradient(145deg,#1e90ff,#0f5f9f);
 border-radius:10px;
-cursor:pointer;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:40px;
+cursor:pointer;display:flex;
+align-items:center;justify-content:center;
+box-shadow:0 4px 12px rgba(0,0,0,0.4);
+transition:all 0.3s ease;
+position:relative;overflow:hidden;
 }
-
-.card.open{
-background:white;
-color:black;
+.card::before{
+content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,0.1) 50%,transparent 70%);
+transform:translateX(-100%);transition:transform 0.6s;
+}
+.card:hover::before{transform:translateX(100%)}
+.card:hover:not(.open):not(.disabled){
+transform:scale(1.08) rotateY(8deg);
+box-shadow:0 12px 30px rgba(30,144,255,0.6);
+}
+.card img{
+width:100%;height:100%;border-radius:10px;display:none;
+object-fit:cover;
+}
+.card.open img{display:block;transform:rotateY(180deg)}
+.card.disabled{
+cursor:not-allowed;opacity:0.3;
+pointer-events:none;transform:scale(0.92);
 }
 
 /* GAME OVER */
-
 #gameover{
-background:#111;
+background:linear-gradient(135deg,rgba(11,16,32,0.95),rgba(0,0,0,0.98));
 }
+#gameover h1{
+font-size:4.2em;margin:0;font-weight:900;
+text-shadow:0 0 30px currentColor;
+letter-spacing:2px;
+}
+#gameover.victory h1{color:#00ff88}
+#gameover.defeat h1{color:#ff4444}
+.gameover-stats{
+background:linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
+padding:35px;border-radius:25px;
+margin:25px 0;max-width:500px;
+backdrop-filter:blur(15px);
+box-shadow:0 20px 60px rgba(0,0,0,0.6);
+border:1px solid rgba(255,255,255,0.1);
+}
+.gameover-stats div{
+font-size:1.9em;margin:18px 0;font-weight:700;
+text-shadow:0 2px 10px rgba(0,0,0,0.5);
+}
+.gameover-btns{
+display:flex;gap:20px;flex-wrap:wrap;justify-content:center;
+}
+.gameover-btns button{
+margin:10px;font-size:20px;padding:18px 35px;
+min-width:220px;border-radius:15px;
+font-weight:bold;box-shadow:0 8px 25px rgba(0,0,0,0.4);
+}
+.gameover-btns .menu-btn{background:linear-gradient(145deg,#1e90ff,#4169e1)}
+.gameover-btns .retry-btn{background:linear-gradient(145deg,#00ff88,#4ade80);color:black}
 
 /* ranking */
-
 table{
-background:white;
-color:black;
-border-collapse:collapse;
-margin-top:20px;
+background:rgba(255,255,255,0.97);
+color:black;border-collapse:collapse;
+margin:25px auto;max-width:750px;border-radius:20px;
+overflow:hidden;box-shadow:0 15px 40px rgba(0,0,0,0.5);
 }
-
 td,th{
-border:1px solid black;
-padding:6px 10px;
+border:1px solid #e0e0e0;padding:14px 18px;text-align:center;
 }
-
-.playerRow{
-background:#ddd;
-font-weight:bold;
+th{
+background:linear-gradient(145deg,#1e90ff,#4169e1);
+color:white;font-weight:900;font-size:1.1em;
 }
+.playerRow{background:#e8f4ff;font-weight:700}
 
+/* dificuldade */
+#difficulty button{
+display:block;margin:14px auto;max-width:300px;
+font-size:17px;padding:16px 30px;
+}
+#difficulty h2{margin-bottom:35px;font-size:2.2em}
 </style>
 </head>
 
 <body>
 
+<audio id="music" loop preload="auto">
+<source src="music/stadium.mp3">
+</audio>
+
 <!-- INTRO -->
-
 <div id="intro" class="screen active">
-
 <img id="trophy" src="img/trofeu.png">
-
-<h1>Memory of the Champions</h1>
-
 </div>
 
 <!-- MENU -->
-
 <div id="menu" class="screen">
+<h1>⚽ Memory of the Champions</h1>
+<div class="menuButtons">
+<button onclick="startGameScreen()">🎮 Jogar</button>
+<button class="circleBtn" onclick="trocarTela('rules')">?</button>
+</div>
+<h2>🏆 Ranking - 11 Pares Exatos</h2>
+<table id="rankTable"></table>
+</div>
 
-<h2>Menu</h2>
+<!-- REGRAS -->
+<div id="rules" class="screen">
+<div class="back" onclick="trocarTela('menu')">⬅</div>
+<div class="rulesBox">
+<h2>📋 Regras do Jogo</h2>
+<p><b>🎯 11 jogadores = 22 cartas = 11 pares</b></p>
+<p>⭐ Cada par correto = <b>+10 pontos</b></p>
+<p>⏰ Grid: <b>2x11</b> • Escolha sua dificuldade</p>
+<p>💾 <b>Melhor pontuação salva</b> por dificuldade</p>
+<hr style="margin:25px 0">
+<div style="font-size:1.2em">
+<b>Jogadores:</b><br>
+messi • mbappe • neymar • modric • griezmann • alvarez<br>
+vinijr • kane • debruyne • hakimi • giroud
+</div>
+</div>
+</div>
 
-<button onclick="start()">Jogar</button>
-
-<h3>Ranking</h3>
-
-<table id="rankTable">
-
-<tr>
-<th>Jogador</th>
-<th>Pontos</th>
-<th>Tempo</th>
-</tr>
-
-</table>
-
+<!-- DIFICULDADE -->
+<div id="difficulty" class="screen">
+<div class="back" onclick="trocarTela('menu')">⬅</div>
+<h2>🎮 Nível de Dificuldade</h2>
+<button onclick="startGame(180,'Fácil')">🌱 Fácil - 3:00 min</button>
+<button onclick="startGame(120,'Médio')">🌿 Médio - 2:00 min</button>
+<button onclick="startGame(90,'Normal')">⚡ Normal - 1:30 min</button>
+<button onclick="startGame(60,'Difícil')">🔥 Difícil - 1:00 min</button>
+<button onclick="startGame(40,'Extremo')">💀 Extremo - 40 seg</button>
 </div>
 
 <!-- GAME -->
-
 <div id="game" class="screen">
-
 <h2 id="player"></h2>
-
 <div id="hud">
-<div id="points">Pontos:0</div>
-<div id="timer">Tempo:0</div>
+<div id="points">⭐ Pontos: 0</div>
+<div id="timer">⏰ Tempo: 0</div>
 </div>
-
+<div id="progress">
+<div id="progress-bar"></div>
+</div>
 <div id="board"></div>
-
 </div>
 
 <!-- GAME OVER -->
-
 <div id="gameover" class="screen">
-
-<h1 id="resultText"></h1>
-
-<button onclick="trocarTela('menu')">Voltar ao Menu</button>
-
+<h1 id="gameover-title"></h1>
+<div class="gameover-stats">
+<div>Pontos Finais: <span id="final-points"></span></div>
+<div>Dificuldade: <span id="final-dificuldade"></span></div>
+<div>Tempo Usado: <span id="final-tempo"></span></div>
+<div>Pares: <span id="final-pares"></span>/11</div>
+</div>
+<div class="gameover-btns">
+<button class="menu-btn" onclick="trocarTela('menu')">🏆 Menu Principal</button>
+<button class="retry-btn" onclick="jogarNovamente()">🔄 Jogar Novamente</button>
+</div>
 </div>
 
 <script>
-
-/* intro */
-
 setTimeout(()=>trocarTela("menu"),3000)
 
-/* variáveis */
+let nome="",pontos=0,dificuldadeAtual="",paresEncontrados=0
+let tempoRestante=0,timerInterval=null,jogoAtivo=false
+let tempoInicio=0
 
-let nome=""
-let pontos=0
-let tempoRestante=60
-
-let timerInterval=null
-
-let jogoAtivo=false
-
-let primeira=null
-let segunda=null
-let trava=false
-
-const simbolos=[
-"⚽","🥅","🏆","🥇","🎯","👟","🧤","📣","🏟️","🎽","🟡"
+// EXATAMENTE OS 11 JOGADORES QUE VOCÊ DISSE
+const jogadores=[
+"messi","mbappe","neymar","modric","griezmann",
+"alvarez","vinijr","kane","debruyne","hakimi","giroud"
 ]
 
-let cartas=[]
-
-/* trocar tela */
+let cartas=[],primeira=null,segunda=null,trava=false
 
 function trocarTela(id){
-
-document.querySelectorAll(".screen").forEach(t=>t.classList.remove("active"))
-
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
 document.getElementById(id).classList.add("active")
-
 }
 
-/* iniciar */
-
-function start(){
-
-nome=prompt("Digite seu nome")
-
-if(!nome)return
-
-document.getElementById("player").innerText="Jogador: "+nome
-
-startGame()
-
+function startGameScreen(){
+nome=prompt("👤 Digite seu nome:")
+if(!nome){alert("❌ Nome obrigatório!");return}
+document.getElementById("player").innerText="👋 "+nome
+trocarTela("difficulty")
 }
 
-/* iniciar jogo */
+function startGame(segundos,dif){
+pontos=paresEncontrados=0;dificuldadeAtual=dif;jogoAtivo=true
+tempoRestante=segundos;tempoInicio=Date.now()
+primeira=segunda=trava=null
 
-function startGame(){
-
-pontos=0
-tempoRestante=60
-
-jogoAtivo=true
-
-document.getElementById("points").innerText="Pontos:0"
-document.getElementById("timer").innerText="Tempo:"+tempoRestante
+document.getElementById("points").innerText="⭐ Pontos: 0"
+document.getElementById("timer").innerText="⏰ Tempo: "+tempoRestante
+document.getElementById("timer").classList.remove("critical")
+document.getElementById("progress-bar").style.width="0%"
 
 trocarTela("game")
-
+document.getElementById("music").play().catch(()=>{})
 criarTabuleiro()
 
 if(timerInterval) clearInterval(timerInterval)
-
 timerInterval=setInterval(timerTick,1000)
-
 }
-
-/* timer */
 
 function timerTick(){
-
 if(!jogoAtivo) return
-
 tempoRestante--
+document.getElementById("timer").innerText="⏰ Tempo: "+tempoRestante
 
-document.getElementById("timer").innerText="Tempo:"+tempoRestante
+if(tempoRestante<=10) document.getElementById("timer").classList.add("critical")
 
 if(tempoRestante<=0){
-
+clearInterval(timerInterval)
+timerInterval=null
 encerrar(false)
-
+return
 }
-
 }
-
-/* criar cartas */
 
 function criarTabuleiro(){
-
-cartas=[...simbolos,...simbolos]
-
+cartas=[...jogadores,...jogadores] // 11 + 11 = 22 cartas
 cartas.sort(()=>Math.random()-0.5)
-
 const board=document.getElementById("board")
-
 board.innerHTML=""
-
-cartas.forEach(simbolo=>{
-
+cartas.forEach((j,i)=>{
 let card=document.createElement("div")
-
 card.className="card"
-
-card.dataset.valor=simbolo
-
-card.innerText="?"
-
+card.dataset.valor=j
+card.dataset.id=i
+let img=document.createElement("img")
+img.src="img/"+j+".jpg"
+img.alt=j
+img.loading="lazy"
+card.appendChild(img)
 card.onclick=()=>virar(card)
-
 board.appendChild(card)
-
 })
-
 }
 
-/* virar carta */
-
 function virar(card){
-
-if(!jogoAtivo)return
-if(trava)return
-if(card.classList.contains("open"))return
+if(!jogoAtivo) return
+if(!card.querySelector('img').complete||trava||card.classList.contains("open")) return
 
 card.classList.add("open")
 
-card.innerText=card.dataset.valor
-
 if(!primeira){
-
 primeira=card
 return
-
 }
 
 segunda=card
-
 trava=true
 
 if(primeira.dataset.valor===segunda.dataset.valor){
-
 pontos+=10
-
-document.getElementById("points").innerText="Pontos:"+pontos
-
-primeira=null
-segunda=null
-trava=false
-
-verificar()
-
+paresEncontrados++
+document.getElementById("points").innerText="⭐ Pontos: "+pontos
+document.getElementById("progress-bar").style.width=(paresEncontrados/11*100)+"%"
+primeira=segunda=trava=null
+setTimeout(verificar,200)
 }else{
-
 setTimeout(()=>{
-
-primeira.classList.remove("open")
-segunda.classList.remove("open")
-
-primeira.innerText="?"
-segunda.innerText="?"
-
-primeira=null
-segunda=null
-trava=false
-
+if(primeira) primeira.classList.remove("open")
+if(segunda) segunda.classList.remove("open")
+primeira=segunda=trava=null
 },800)
-
 }
-
 }
-
-/* vitória */
 
 function verificar(){
-
-let abertas=document.querySelectorAll(".card.open")
-
-if(abertas.length===cartas.length){
-
-encerrar(true)
-
+if(paresEncontrados===11) encerrar(true)
 }
-
-}
-
-/* encerrar */
 
 function encerrar(vitoria){
-
-if(!jogoAtivo)return
+if(!jogoAtivo) return
 
 jogoAtivo=false
+if(timerInterval){clearInterval(timerInterval);timerInterval=null}
 
-clearInterval(timerInterval)
+const music=document.getElementById("music")
+music.pause()
+music.currentTime=0
 
-if(vitoria){
-
-document.getElementById("resultText").innerText="VOCÊ VENCEU! Pontos:"+pontos
-
-}else{
-
-document.getElementById("resultText").innerText="GAME OVER! Pontos:"+pontos
-
-}
-
-salvarRank(nome,pontos,tempoRestante)
-
-trocarTela("gameover")
-
-}
-
-/* ranking */
-
-function salvarRank(nome,pontos,tempo){
-
-if(!nome)return
-
-let rank=JSON.parse(localStorage.getItem("rank"))||[]
-
-rank.push({
-nome:nome,
-pontos:pontos,
-tempo:tempo
+document.querySelectorAll(".card").forEach(c=>{
+c.classList.add("disabled")
+c.onclick=null
 })
 
+let tempoUsado=Math.floor((Date.now()-tempoInicio)/1000)
+salvarRank(nome,pontos,tempoUsado)
+mostrarGameOver(vitoria,pontos,tempoUsado)
+}
+
+function mostrarGameOver(vitoria,pontosFinal,tempoUsado){
+document.getElementById("gameover").className="screen active "+(vitoria?"victory":"defeat")
+document.getElementById("gameover-title").innerText=vitoria?"🎉 VITÓRIA TOTAL! 🎉":"💀 GAME OVER 💀"
+document.getElementById("final-points").innerText=pontosFinal
+document.getElementById("final-dificuldade").innerText=dificuldadeAtual
+document.getElementById("final-tempo").innerText=tempoUsado+"s"
+document.getElementById("final-pares").innerText=paresEncontrados
+trocarTela("gameover")
+}
+
+function jogarNovamente(){
+startGameScreen()
+}
+
+function salvarRank(nome,pontos,tempo){
+let rank=JSON.parse(localStorage.getItem("rank"))||[]
+let jogador=rank.find(j=>j.nome===nome)
+
+if(!jogador){
+jogador={nome:nome,jogos:[]}
+rank.push(jogador)
+}
+
+let jogoExistente=jogador.jogos.find(g=>g.dificuldade===dificuldadeAtual)
+if(!jogoExistente){
+jogador.jogos.push({dificuldade:dificuldadeAtual,pontos,tempo,data:new Date().toLocaleDateString()})
+}else if(pontos>jogoExistente.pontos){
+jogoExistente.pontos=pontos
+jogoExistente.tempo=tempo
+jogoExistente.data=new Date().toLocaleDateString()
+}
+
 localStorage.setItem("rank",JSON.stringify(rank))
-
 carregarRank()
-
 }
 
 function carregarRank(){
-
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
-
 let tabela=document.getElementById("rankTable")
-
-tabela.innerHTML="<tr><th>Jogador</th><th>Pontos</th><th>Tempo</th></tr>"
+tabela.innerHTML=`<tr><th>Jogador</th><th>Dif.</th><th>⭐ Pontos</th><th>⏰ Tempo</th><th>📅 Data</th></tr>`
 
 rank.forEach(j=>{
+let linha=document.createElement("tr")
+linha.className="playerRow"
+linha.innerHTML=`<td colspan="5"><b>${j.nome}</b></td>`
+tabela.appendChild(linha)
 
-if(!j.nome)return
-
+j.jogos.sort((a,b)=>b.pontos-a.pontos).forEach(g=>{
 let l=document.createElement("tr")
-
-l.innerHTML=`<td>${j.nome}</td><td>${j.pontos}</td><td>${j.tempo}</td>`
-
+l.innerHTML=`<td></td><td>${g.dificuldade}</td><td><b>${g.pontos}</b></td><td>${g.tempo}s</td><td>${g.data}</td>`
 tabela.appendChild(l)
-
 })
-
+})
 }
 
 carregarRank()
-
 </script>
-
 </body>
 </html>
