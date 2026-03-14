@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -153,7 +152,7 @@ display:block;
 .card.disabled{
 cursor:not-allowed;
 opacity:0.5;
-pointer-events:none; /* ✅ BLOQUEIA CLIQUE TOTAL */
+pointer-events:none;
 }
 
 /* RANK */
@@ -175,7 +174,6 @@ background:#ddd;
 font-weight:bold;
 }
 </style>
-
 </head>
 
 <body>
@@ -234,7 +232,11 @@ font-weight:bold;
 
 <h2>Dificuldade</h2>
 
-<button onclick="startGame(120,'Fácil')">Fácil</button> <button onclick="startGame(90,'Médio')">Médio</button> <button onclick="startGame(60,'Normal')">Normal</button> <button onclick="startGame(40,'Difícil')">Difícil</button> <button onclick="startGame(20,'Extremo')">Extremo</button>
+<button onclick="startGame(120,'Fácil')">Fácil</button>
+<button onclick="startGame(90,'Médio')">Médio</button>
+<button onclick="startGame(60,'Normal')">Normal</button>
+<button onclick="startGame(40,'Difícil')">Difícil</button>
+<button onclick="startGame(20,'Extremo')">Extremo</button>
 
 </div>
 
@@ -257,6 +259,7 @@ let nome=""
 let pontos=0
 let dificuldadeAtual=""
 let tempoFinal=0
+let tempoInicial=0
 let timerInterval
 let jogoAtivo=false
 
@@ -294,7 +297,8 @@ jogoAtivo=true
 
 document.getElementById("points").innerText="Pontos: 0"
 
-tempoFinal=Date.now() + segundos*1000
+tempoInicial=Date.now()
+tempoFinal=Date.now()+segundos*1000
 
 trocarTela("game")
 
@@ -317,9 +321,13 @@ if(restante<0) restante=0
 document.getElementById("timer").innerText="Tempo: "+restante
 
 if(restante<=0){
-    jogoAtivo=false
-    encerrar(false)  // ✅ CHAMA UMA VEZ SÓ
-    return  // ✅ EVITA LOOP
+
+clearInterval(timerInterval)
+timerInterval=null
+
+encerrar(false)
+
+return
 }
 
 }
@@ -356,7 +364,6 @@ function virar(card){
 if(!jogoAtivo)return
 if(trava)return
 if(card.classList.contains("open"))return
-if(card.classList.contains("disabled"))return
 
 card.classList.add("open")
 
@@ -410,38 +417,41 @@ encerrar(true)
 
 function encerrar(vitoria){
 
-// ✅ PRIMEIRO: PARA TUDO IMEDIATAMENTE
 jogoAtivo=false
-if(timerInterval){
-    clearInterval(timerInterval)
-    timerInterval=null
-}
-const music = document.getElementById("music")
-music.pause()
-music.currentTime=0  // ✅ RESETA A MÚSICA
 
-// ✅ DESATIVA TODAS AS CARTAS
+if(timerInterval){
+clearInterval(timerInterval)
+timerInterval=null
+}
+
+const music=document.getElementById("music")
+music.pause()
+music.currentTime=0
+
 document.querySelectorAll(".card").forEach(c=>{
-    c.classList.add("disabled")
-    c.onclick=null
+c.classList.add("disabled")
+c.onclick=null
 })
 
-// ✅ SALVA RANK
-salvarRank(nome,pontos)
+let tempoUsado=Math.floor((Date.now()-tempoInicial)/1000)
 
-// ✅ ALERT E MENU
+salvarRank(nome,pontos,tempoUsado)
+
 setTimeout(()=>{
-    if(vitoria){
-        alert("Você venceu! Pontos: "+pontos)
-    }else{
-        alert("Game Over! Pontos: "+pontos)
-    }
-    trocarTela("menu")
-},100)  // ← REDUZIDO PARA 100ms
+
+if(vitoria){
+alert("Você venceu! Pontos: "+pontos)
+}else{
+alert("Game Over! Pontos: "+pontos)
+}
+
+trocarTela("menu")
+
+},200)
 
 }
 
-function salvarRank(nome,pontos){
+function salvarRank(nome,pontos,tempo){
 
 let rank=JSON.parse(localStorage.getItem("rank"))||[]
 
@@ -457,6 +467,7 @@ rank.push(jogador)
 jogador.jogos.push({
 dificuldade:dificuldadeAtual,
 pontos:pontos,
+tempo:tempo,
 data:new Date().toLocaleDateString()
 })
 
@@ -485,7 +496,7 @@ l.innerHTML=`
 <td></td>
 <td>${g.dificuldade}</td>
 <td>${g.pontos}</td>
-<td>-</td>
+<td>${g.tempo}s</td>
 <td>${g.data}</td>
 `
 
